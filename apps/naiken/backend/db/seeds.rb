@@ -47,6 +47,19 @@ properties.each do |attrs|
   Property.find_or_create_by!(name: attrs[:name]) { it.assign_attributes(attrs) }
 end
 
+# 物件写真。scripts/generate_property_images.py で生成したダミー画像(外観・室内・間取り図)を、
+# 写真が未登録の物件にだけ添付する(ファイル名の番号は上の properties の順番に対応)
+images_dir = Rails.root.join("db/seeds/images")
+properties.each.with_index(1) do |attrs, number|
+  property = Property.find_by!(name: attrs[:name])
+  next if property.photos.attached?
+
+  files = Dir[images_dir.join(format("property-%02d-*.jpg", number))].sort
+  property.photos.attach(files.map do |path|
+    { io: File.open(path), filename: File.basename(path).sub(/\Aproperty-\d+-\d-/, ""), content_type: "image/jpeg" }
+  end)
+end
+
 # 内見予定は「今日」を基準に作るため、未登録のときだけ投入する
 if Viewing.none?
   today = Time.zone.today
@@ -92,4 +105,5 @@ if Viewing.none?
   end
 end
 
-puts "agents: #{Agent.count}, customers: #{Customer.count}, properties: #{Property.count}, viewings: #{Viewing.count}"
+puts "agents: #{Agent.count}, customers: #{Customer.count}, properties: #{Property.count}, " \
+     "viewings: #{Viewing.count}, photos: #{ActiveStorage::Attachment.where(record_type: "Property").count}"

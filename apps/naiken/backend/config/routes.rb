@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       end
       resources :properties, only: %i[index show create update destroy] do
         get :areas, on: :collection
+        resources :photos, only: %i[create destroy], controller: :property_photos
       end
       resources :viewings, only: %i[index show create update] do
         member do
@@ -22,6 +23,8 @@ Rails.application.routes.draw do
     end
   end
 
-  # どのルートにも一致しないURLは、HTMLではなくJSONの404を返す
-  match "*unmatched", to: "application#route_not_found", via: :all
+  # どのルートにも一致しないURLは、HTMLではなくJSONの404を返す。
+  # Active Storage のルート(写真の配信)はこの後ろに追加されるため、写真のパスは除外する
+  match "*unmatched", to: "application#route_not_found", via: :all,
+                      constraints: ->(request) { !request.path.start_with?("#{ActiveStorage.routes_prefix}/") }
 end

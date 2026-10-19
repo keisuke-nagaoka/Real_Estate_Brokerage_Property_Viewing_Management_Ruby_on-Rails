@@ -36,6 +36,8 @@
 | POST | `/properties` | 登録 |
 | PATCH | `/properties/:id` | 更新（掲載状況の変更を含む） |
 | DELETE | `/properties/:id` | 削除（内見予定がある場合は不可） |
+| POST | `/properties/:id/photos` | 写真の追加（`multipart/form-data` で `photos[]` を送る。JPEG・PNG・WebP、1枚5MBまで、1物件10枚まで） |
+| DELETE | `/properties/:id/photos/:photo_id` | 写真の削除 |
 
 ### 内見予定
 
@@ -52,6 +54,12 @@
 
 ```json
 { "prefecture": "神奈川県", "city": "川崎市中原区", "address_line": "小杉町1丁目", "address": "神奈川県川崎市中原区小杉町1丁目" }
+```
+
+物件のレスポンスには写真の一覧を含めます（1枚目を一覧のカバー写真として使います）。`url` は詳細表示用（最大1600×1200）、`thumbnail_url` は一覧用（640×427）の画像で、初回アクセス時に生成されます。
+
+```json
+{ "photos": [ { "id": 1, "filename": "exterior.jpg", "url": "/naiken/api/files/representations/proxy/...", "thumbnail_url": "/naiken/api/files/representations/proxy/..." } ] }
 ```
 
 ## エラーレスポンス

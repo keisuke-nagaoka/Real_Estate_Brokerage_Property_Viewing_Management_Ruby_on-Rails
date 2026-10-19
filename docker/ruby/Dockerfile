@@ -4,7 +4,7 @@ FROM ruby:3.4-slim
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
       build-essential default-libmysqlclient-dev default-mysql-client \
-      git libyaml-dev pkg-config curl tzdata && \
+      git libyaml-dev pkg-config curl tzdata libvips42t64 && \
     rm -rf /var/lib/apt/lists/*
 
 # ホスト側のユーザーと同じUID/GIDで実行し、rails g 等で生成したファイルがroot所有にならないようにする

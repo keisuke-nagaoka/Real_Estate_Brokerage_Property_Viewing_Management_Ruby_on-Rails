@@ -12,6 +12,8 @@ Docker Compose で、nginx・Rails API・React(Vite)・MySQL を起動します�
 ├── .env.example            # 開発用イメージのビルド引数 (UID/GID)
 ├── .github/workflows/      # CI (GitHub Actions)
 ├── docs/                   # ドキュメント・スクリーンショット
+├── scripts/
+│   └── generate_property_images.py  # デモ用の物件画像(外観・室内・間取り図)を生成
 ├── docker/
 │   ├── ruby/
 │   │   ├── Dockerfile          # 開発用 (Rails)
@@ -36,6 +38,7 @@ Docker Compose で、nginx・Rails API・React(Vite)・MySQL を起動します�
         │   │   └── serializers/          # JSONの組み立て
         │   ├── config/locales/ja.yml     # 項目名・エラーメッセージの日本語化
         │   ├── db/                       # マイグレーション・シード
+        │   │   └── seeds/images/         # デモ用の物件画像(scripts/ で生成)
         │   └── spec/                     # RSpec (models / requests)
         └── frontend/           # React 19 + TypeScript + Vite
             └── src/
@@ -92,6 +95,16 @@ docker compose exec naiken-web npm run build
 
 > nginx の設定ファイルを編集した場合は `docker compose up -d --force-recreate nginx` で反映します
 > （Docker Desktop(WSL) では、単一ファイルの bind mount がエディタの保存方法によって追従しないことがあるため）。
+
+## デモ用の物件画像
+
+`apps/naiken/backend/db/seeds/images/` の画像は、実在する物件の写真を使わないよう、Pillow で図形を組み合わせて描いたダミー画像です。
+物件ごとに外観（階数・配色・空の色を変える）、室内、間取り図（間取りと専有面積から部屋の広さを計算）の3枚を生成します。
+
+```bash
+docker run --rm -v "$PWD":/work -w /work python:3.12-slim bash -c \
+  "apt-get update -qq && apt-get install -y -qq fonts-noto-cjk >/dev/null && pip install -q pillow && python scripts/generate_property_images.py"
+```
 
 ## CI (GitHub Actions)
 

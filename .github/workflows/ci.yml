@@ -41,8 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install MySQL client library
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libmysqlclient-dev
+      - name: Install system libraries (MySQL client / libvips)
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libmysqlclient-dev libvips-dev
 
       - uses: ruby/setup-ruby@v1
         with:

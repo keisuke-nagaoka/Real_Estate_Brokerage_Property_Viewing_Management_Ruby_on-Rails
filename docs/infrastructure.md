@@ -26,12 +26,15 @@ Browser ──HTTPS──> Route 53 (rails.keisuke-nagaoka.com)
 | DB | MySQL コンテナ | Amazon RDS for MySQL |
 | Rails | ソースを bind mount、変更を即反映 | ソース・gem をイメージに焼き込み（`docker/ruby/Dockerfile.prod`） |
 | React | Vite の開発サーバー（HMR） | ビルド成果物を nginx イメージに焼き込み、nginx が静的配信（Node.js は常駐しない） |
+| 物件写真 | `apps/naiken/backend/storage/`（bind mount） | Docker ボリューム `naiken_storage` |
 | 設定 | `apps/naiken/backend/.env` | `apps/naiken/backend/.env.production`（GitHub にはコミットしない） |
 
 - `naiken-api` は起動時に `bin/rails db:prepare` を実行し、DB 作成・未適用マイグレーションを適用してから Puma を起動する
 - 画面と API は同一オリジン（`/naiken/` と `/naiken/api/`）のため CORS 設定は不要
 - 本番のホスト側ポートは `HTTP_PORT` / `HTTPS_PORT` で変更可能（デフォルト 80 / 443）
 - `APP_HOSTS` で Host ヘッダーを制限し、DNS リバインディング攻撃を防ぐ
+- 物件写真（Active Storage）は Docker ボリューム `naiken_storage` に保存し、コンテナを作り直しても消えないようにする。写真のURLの先頭には `PUBLIC_PATH_PREFIX`（`/naiken`）を付ける
+- 初回起動時（DB を新規作成したとき）は `db:prepare` がデモデータ（物件写真を含む）も投入する
 - 起動・設定のテンプレートは [`apps/naiken/backend/.env.production.example`](../apps/naiken/backend/.env.production.example)
 
 ## RDS

@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { propertiesApi } from '../../api/properties'
+import { PhotoGallery } from '../../components/PhotoGallery'
 import { ViewingSection } from '../../components/ViewingSection'
 import { errorMessage } from '../../lib/api'
 import { formatAccess, formatBuildingAge, formatDateTime, formatPrice } from '../../lib/format'
 import { propertyStatusLabels } from '../../lib/labels'
 import { NotFoundPage } from '../NotFoundPage'
+import { PropertyPhotoManager } from './PropertyPhotoManager'
 import { useProperty } from './useProperty'
 
 export function PropertyDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { property, error, notFound } = useProperty(id)
+  const { property, setProperty, error, notFound } = useProperty(id)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   if (notFound) return <NotFoundPage />
@@ -52,6 +54,11 @@ export function PropertyDetailPage() {
               </button>
             </div>
           </header>
+
+          <section className="card photo-card">
+            <PhotoGallery photos={property.photos} alt={property.name} />
+            <PropertyPhotoManager property={property} onChange={setProperty} />
+          </section>
 
           <section className="card">
             <dl className="detail">

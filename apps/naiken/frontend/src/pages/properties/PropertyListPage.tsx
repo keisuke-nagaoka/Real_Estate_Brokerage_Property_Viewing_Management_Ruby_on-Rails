@@ -143,9 +143,15 @@ export function PropertyListPage() {
       <div className={`property-grid${loading ? ' loading' : ''}`}>
         {properties.map((property) => (
           <Link key={property.id} to={`/properties/${property.id}`} className={`property-card${property.status === 'closed' ? ' is-closed' : ''}`}>
-            <div className="property-card-head">
-              <span className="property-price">{formatPrice(property.price)}</span>
-              <span className={`badge badge-${property.status}`}>{propertyStatusLabels[property.status]}</span>
+            <div className="property-cover">
+              {property.photos[0] ? (
+                <img src={property.photos[0].thumbnail_url} alt={`${property.name}の外観`} loading="lazy" />
+              ) : (
+                <span className="property-cover-empty">No Photo</span>
+              )}
+              <span className="property-cover-price">{formatPrice(property.price)}</span>
+              <span className={`badge badge-${property.status} property-cover-badge`}>{propertyStatusLabels[property.status]}</span>
+              {property.photos.length > 1 && <span className="property-cover-count">📷 {property.photos.length}</span>}
             </div>
             <div className="property-name">{property.name}</div>
             <div className="muted small">{property.address}</div>

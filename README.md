@@ -37,8 +37,12 @@ Ruby on Rails（API）と React（TypeScript）で構成し、Docker 上で開�
 | 顧客一覧（検索・ステータス・担当者で絞り込み） | 顧客詳細（ステータス変更・内見予定） |
 | --- | --- |
 | ![顧客一覧](docs/images/customers-list.png) | ![顧客詳細](docs/images/customer-detail.png) |
-| **物件一覧（掲載状況・価格帯で絞り込み）** | **内見予定（日付ごとの一覧）** |
-| ![物件一覧](docs/images/properties.png) | ![内見予定](docs/images/viewings.png) |
+| **物件一覧（エリア・掲載状況・価格帯で絞り込み）** | **物件詳細（写真ギャラリー・内見予定）** |
+| ![物件一覧](docs/images/properties.png) | ![物件詳細](docs/images/property-detail.png) |
+| **内見予定（日付ごとの一覧）** | |
+| ![内見予定](docs/images/viewings.png) | |
+
+物件の写真（外観・室内・間取り図）は、実在する物件の写真を使わないよう、[スクリプト](scripts/generate_property_images.py)で描画したダミー画像です。
 
 業務ルールに違反する操作は、サーバー側で検証してメッセージを返します（例: 担当者の予定の重複）。
 
@@ -50,6 +54,7 @@ Ruby on Rails（API）と React（TypeScript）で構成し、Docker 上で開�
 | --- | --- |
 | 顧客管理 | 登録・編集・削除、氏名・フリガナ・メール・電話番号での検索、担当者・ステータスでの絞り込み、ページネーション |
 | 物件管理 | 登録・編集・削除、物件名・住所・最寄り駅での検索、エリア（都道府県 → 市区町村）・掲載状況・価格帯での絞り込み |
+| 物件写真 | 1物件10枚までの写真の追加・削除、一覧のカバー写真、詳細画面のギャラリー（サムネイルは自動生成） |
 | 内見予定 | 顧客と物件を紐づけた予定の登録・変更、実施済み・キャンセルの操作、日付ごとの一覧、顧客・物件ごとの履歴表示 |
 | 対応ステータス | 問い合わせ → 内見予定 → 検討中 → 成約 / 失注 の管理、ステータス別のボード表示 |
 | 入力の検証 | 項目ごとの日本語エラーメッセージ、全角数字・前後の空白などの表記ゆれの正規化 |
@@ -81,7 +86,7 @@ Ruby on Rails（API）と React（TypeScript）で構成し、Docker 上で開�
 
 | 領域 | 技術 |
 | --- | --- |
-| バックエンド | Ruby 3.4 / Ruby on Rails 8.1（API mode） |
+| バックエンド | Ruby 3.4 / Ruby on Rails 8.1（API mode）、Active Storage + libvips（物件写真） |
 | フロントエンド | React 19 / TypeScript / Vite / React Router |
 | DB | MySQL 8.0（本番: Amazon RDS for MySQL） |
 | テスト・静的解析 | RSpec / FactoryBot / RuboCop / Brakeman / bundler-audit（バックエンド）、Vitest / Testing Library / oxlint（フロントエンド） |
@@ -121,6 +126,14 @@ Browser ──HTTPS──> nginx
 - 価格は「万円」単位の整数で保存し、小数の誤差が出ないようにした。専有面積は `decimal` で保存し、JSON では文字列にならないよう数値に変換して返す
 - ステータスは文字列の `enum` で保存し、DB を直接見ても値の意味が分かるようにした。`validate: true` を指定し、未定義の値が送られても例外ではなくバリデーションエラー（422）になるようにした
 
+### 物件写真
+
+- Rails 標準の Active Storage で写真を保存し、一覧用のサムネイル（640×427）と詳細用（最大1600×1200）を libvips で自動生成する。生成した画像は再利用される
+- 写真の形式は、ファイル名や送信された Content-Type ではなく、ファイルの中身から判定した形式で確認する（拡張子を偽装したファイルを弾く）。枚数・サイズ・形式は画面でも事前に確認し、サーバー側でも同じ条件で検証する
+- 画面とAPIを nginx の `/naiken/` 配下で配信しているため、Active Storage の配信パスを `/api/files` に変更し、リダイレクトではなく Rails 経由で画像を返す方式（proxy モード）にした。リダイレクトだとプロキシ越しにホストやパスが崩れるため
+- 本番では写真をDockerボリュームに保存し、コンテナを作り直しても消えないようにした（将来的に S3 へ切り替えられるよう、保存先は環境変数で選べるようにしている）
+- 一覧取得では `with_attached_photos` で写真の情報をまとめて読み込み、N+1 問題を防いでいる
+
 ### 性能・安全性
 
 - 一覧取得では `includes` で関連データをまとめて読み込み、N+1 問題を防いでいる
@@ -154,6 +167,7 @@ Browser ──HTTPS──> nginx
 | 関連先がある場合の削除禁止 | 外部キー制約の例外を捕まえる / 自前でチェック | `dependent: :restrict_with_error`（バリデーションエラーとして扱える） |
 | モデルのコールバック | Observer / `booted()` 内のイベント | `after_create` / `before_destroy` など（`prepend: true` で実行順を制御） |
 | 例外の共通処理 | `bootstrap/app.php` の `withExceptions` / Handler | コントローラーの `rescue_from`（後に書いたものが優先される） |
+| ファイルのアップロード | `Storage` ファサード + `$request->file()->store()` | Active Storage（`has_many_attached`、サムネイルは `variant`） |
 | テスト | PHPUnit / Pest | RSpec + FactoryBot |
 
 ## 実装中に調べたこと・解決したこと
@@ -168,6 +182,8 @@ Browser ──HTTPS──> nginx
 - **新しいディレクトリが読み込まれなかった**：`app/serializers` を追加した直後は `uninitialized constant` になった。Rails の自動読み込みの対象ディレクトリは起動時に決まるため、サーバーの再起動が必要だった
 - **ローカルでは通るテストがCIだけで失敗した**：GitHub Actions で RSpec が15件失敗した。CIではテスト用DBを毎回新しく作るが、`bin/rails db:prepare` は「DBを新規作成したとき」に `db:seed` も実行するため、テスト用DBにデモデータが入り、件数や並び順を確認するテストが失敗していた。ローカルではテスト用DBが作成済みだったため気づかなかった。CIでは `db:create db:schema:load` を使うように変更した
 - **政令指定都市の住所の分け方**：「神奈川県川崎市中原区小杉町」を単純に「最初の市区町村まで」で区切ると、市区町村が「川崎市」になり、区単位で絞り込めない。不動産の検索では区単位で探すことが多いため、「〇〇市〇〇区」をひとまとまりの市区町村として扱う正規表現にした
+- **写真のURLが404（JSON）になった**：存在しないURLにJSONの404を返すため、ルーティングの最後に「すべてのパスに一致するルート」を置いていた。Active Storage のルートはアプリのルートの後ろに追加されるため、写真のURLもこのルートに一致してしまっていた。写真の配信パス（`/api/files/`）を除外する条件を付けて解決した
+- **写真の添付に失敗しても `false` が返らなかった**：保存済みのレコードで `photos.attach` がバリデーションエラーになった場合、戻り値は `false` ではなく `nil` だった。テストでは `be_falsey` で確認し、コントローラーでは戻り値の真偽で分岐している
 - **テストでは配信パスが `/naiken/` にならなかった**：API クライアントのテストで、リクエスト先が `/naiken/api/v1/...` ではなく `/api/v1/...` になった。Vitest 実行時は `import.meta.env.BASE_URL` が `/` になるため、期待値も `BASE_URL` から組み立てるようにした
 
 ## テスト・CI
@@ -210,4 +226,5 @@ http://localhost:9300/naiken/ を開くと、デモデータ入りの画面が�
 
 - AWS（EC2・RDS・Route 53）での公開
 - ログインと権限管理（担当者ごとに操作できる顧客を制御する）
+- 物件写真の保存先を S3 に切り替え、CloudFront から配信する
 - 顧客への物件提案と、提案に対する顧客の反応（お気に入り・コメント）の記録

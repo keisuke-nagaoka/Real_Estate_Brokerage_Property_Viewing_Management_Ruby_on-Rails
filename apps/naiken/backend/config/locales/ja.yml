@@ -40,6 +40,7 @@ ja:
         walk_minutes: 駅徒歩
         status: 掲載状況
         note: メモ
+        photos: 写真
         viewings: 内見予定
       viewing:
         customer: 顧客
@@ -69,6 +70,10 @@ ja:
               invalid: は「3LDK」「1K」「ワンルーム」などの形式で入力してください
             built_year:
               too_far_future: は3年後までの年を入力してください
+            photos:
+              too_many: "は%{count}枚まで登録できます"
+              invalid_content_type: "「%{filename}」はJPEG・PNG・WebP形式の画像にしてください"
+              too_large: "「%{filename}」は%{size}以下にしてください"
         viewing:
           attributes:
             ends_at:

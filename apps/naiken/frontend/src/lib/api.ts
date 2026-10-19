@@ -35,13 +35,15 @@ function buildUrl(path: string, query?: Query): string {
 }
 
 async function request<T>(method: string, path: string, options: { query?: Query; body?: unknown } = {}): Promise<T> {
+  // ファイルを送る場合(FormData)は、Content-Type をブラウザに任せて multipart/form-data で送る
+  const isFormData = options.body instanceof FormData
   const res = await fetch(buildUrl(path, options.query), {
     method,
     headers: {
       Accept: 'application/json',
-      ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.body !== undefined && !isFormData ? { 'Content-Type': 'application/json' } : {}),
     },
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    body: options.body === undefined ? undefined : isFormData ? (options.body as FormData) : JSON.stringify(options.body),
   })
 
   if (res.status === 204) {
@@ -61,6 +63,7 @@ export const api = {
   post: <T>(path: string, body: unknown) => request<T>('POST', path, { body }),
   patch: <T>(path: string, body: unknown = {}) => request<T>('PATCH', path, { body }),
   delete: (path: string) => request<void>('DELETE', path),
+  deleteWithResponse: <T>(path: string) => request<T>('DELETE', path),
 }
 
 export function errorMessage(error: unknown): string {

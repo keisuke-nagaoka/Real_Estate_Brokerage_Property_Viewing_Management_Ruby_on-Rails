@@ -69,8 +69,17 @@ export type Property = {
   walk_minutes: number | null
   status: PropertyStatus
   note: string | null
+  // 1枚目を一覧のカバー写真として使う
+  photos: PropertyPhoto[]
   created_at: string
   updated_at: string
+}
+
+export type PropertyPhoto = {
+  id: number
+  filename: string
+  url: string
+  thumbnail_url: string
 }
 
 export type PropertyInput = {

@@ -1,6 +1,9 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
+  # 物件写真の保存先(config/storage.yml)。将来 S3 に切り替える場合は storage.yml にサービスを追加して環境変数で指定する
+  config.active_storage.service = ENV.fetch("ACTIVE_STORAGE_SERVICE", "local").to_sym
+
   # Settings specified here will take precedence over those in config/application.rb.
 
   # Code is not reloaded between requests.

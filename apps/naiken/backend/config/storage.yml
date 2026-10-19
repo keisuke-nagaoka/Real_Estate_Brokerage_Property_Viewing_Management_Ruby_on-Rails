@@ -1,0 +1,10 @@
+# 物件写真の保存先。
+#   local: コンテナ内の storage/ (本番は compose.prod.yml でボリュームに永続化する)
+#   test : テストごとに作り直す tmp/storage/
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>

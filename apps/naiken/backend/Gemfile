@@ -16,6 +16,9 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
+# 物件写真のサムネイル生成(Active Storage の variant。libvips を使う)
+gem "image_processing", "~> 1.14"
+
 # バリデーションエラー等のメッセージを日本語化する
 gem "rails-i18n", "~> 8.0"
 

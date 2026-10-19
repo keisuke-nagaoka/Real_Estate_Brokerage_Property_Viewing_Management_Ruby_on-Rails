@@ -19,4 +19,10 @@ export const propertiesApi = {
   create: (input: PropertyInput) => api.post<Single<Property>>('/properties', { property: input }),
   update: (id: number | string, input: PropertyInput) => api.patch<Single<Property>>(`/properties/${id}`, { property: input }),
   delete: (id: number | string) => api.delete(`/properties/${id}`),
+  uploadPhotos: (id: number, files: File[]) => {
+    const form = new FormData()
+    files.forEach((file) => form.append('photos[]', file))
+    return api.post<Single<Property>>(`/properties/${id}/photos`, form)
+  },
+  deletePhoto: (id: number, photoId: number) => api.deleteWithResponse<Single<Property>>(`/properties/${id}/photos/${photoId}`),
 }

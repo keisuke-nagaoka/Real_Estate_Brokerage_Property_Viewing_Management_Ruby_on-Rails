@@ -24,5 +24,5 @@ export function useProperty(id: string | undefined) {
     }
   }, [id])
 
-  return { property, error, notFound }
+  return { property, setProperty, error, notFound }
 }

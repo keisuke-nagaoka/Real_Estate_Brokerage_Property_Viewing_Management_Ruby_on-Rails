@@ -12,8 +12,16 @@ class Property < ApplicationRecord
   ].freeze
   LAYOUT_FORMAT = /\A(\d{1,2}(R|K|DK|LDK|SK|SDK|SLDK)|ワンルーム)\z/
   MAX_PRICE = 1_000_000 # 100億円(万円単位)
+  PHOTO_CONTENT_TYPES = %w[image/jpeg image/png image/webp].freeze
+  MAX_PHOTO_SIZE = 5.megabytes
+  MAX_PHOTOS = 10
 
   has_many :viewings, dependent: :restrict_with_error
+  # 1枚目を一覧のカバー写真として使う。サイズ違いの画像(variant)は初回表示時に生成される
+  has_many_attached :photos do |attachable|
+    attachable.variant :thumb, resize_to_fill: [ 640, 427 ]
+    attachable.variant :large, resize_to_limit: [ 1600, 1200 ]
+  end
 
   enum :status, { available: "available", closed: "closed" }, validate: true
 
@@ -27,6 +35,7 @@ class Property < ApplicationRecord
   validates :floor_area, numericality: { greater_than: 0, less_than: 10_000 }, allow_nil: true
   validates :built_year, numericality: { only_integer: true, greater_than_or_equal_to: 1900 }, allow_nil: true
   validate :built_year_not_too_far_future
+  validate :photos_must_be_valid
   validates :nearest_station, length: { maximum: 50 }
   validates :walk_minutes, numericality: { only_integer: true, in: 0..120 }, allow_nil: true
   validates :note, length: { maximum: 2000 }
@@ -73,6 +82,18 @@ class Property < ApplicationRecord
   end
 
   private
+
+  # 形式は送られてきた Content-Type ではなく、Active Storage がファイルの中身から判定した値で確認する
+  def photos_must_be_valid
+    return unless photos.attached?
+
+    errors.add(:photos, :too_many, count: MAX_PHOTOS) if photos.size > MAX_PHOTOS
+    photos.each do |photo|
+      filename = photo.filename.to_s
+      errors.add(:photos, :invalid_content_type, filename:) unless PHOTO_CONTENT_TYPES.include?(photo.content_type)
+      errors.add(:photos, :too_large, filename:, size: "#{MAX_PHOTO_SIZE / 1.megabyte}MB") if photo.byte_size > MAX_PHOTO_SIZE
+    end
+  end
 
   # 新築・建築予定の物件を考慮し、3年先までは許可する
   def built_year_not_too_far_future

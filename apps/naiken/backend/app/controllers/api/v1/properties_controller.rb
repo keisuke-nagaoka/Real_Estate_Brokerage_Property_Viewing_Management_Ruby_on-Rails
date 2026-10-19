@@ -7,7 +7,8 @@ module Api
 
       # GET /api/v1/properties?q=桜丘&prefecture=東京都&city=世田谷区&status=available&price_min=3000&price_max=6000&page=1
       def index
-        properties = Property.search(params[:q])
+        properties = Property.with_attached_photos
+                             .search(params[:q])
                              .in_area(params[:prefecture], params[:city])
                              .price_between(params[:price_min], params[:price_max])
         properties = properties.where(status: params[:status]) if Property.statuses.key?(params[:status])
@@ -53,7 +54,7 @@ module Api
       private
 
       def set_property
-        @property = Property.find(params[:id])
+        @property = Property.with_attached_photos.find(params[:id])
       end
 
       def property_params

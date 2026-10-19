@@ -7,9 +7,9 @@ FROM ruby:${RUBY_VERSION}-slim AS base
 
 WORKDIR /rails
 
-# default-mysql-client: mysql2が実行時に使うlibmariadb3を含む / libjemalloc2: メモリ断片化対策
+# default-mysql-client: mysql2が実行時に使うlibmariadb3を含む / libjemalloc2: メモリ断片化対策 / libvips: 物件写真のサムネイル生成
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl ca-certificates default-mysql-client libjemalloc2 tzdata && \
+    apt-get install --no-install-recommends -y curl ca-certificates default-mysql-client libjemalloc2 libvips42t64 tzdata && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
@@ -50,7 +50,7 @@ RUN groupadd --system --gid 1000 rails && \
 
 COPY --chown=rails:rails --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --chown=rails:rails --from=build /rails /rails
-RUN mkdir -p tmp/pids log && chown -R rails:rails /rails
+RUN mkdir -p tmp/pids log storage && chown -R rails:rails /rails
 
 USER 1000:1000
 

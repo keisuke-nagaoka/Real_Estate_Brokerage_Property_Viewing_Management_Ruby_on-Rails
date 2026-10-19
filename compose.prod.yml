@@ -31,6 +31,9 @@ services:
         APP_DIR: apps/naiken/backend
     env_file:
       - ./apps/naiken/backend/.env.production
+    # 物件写真(Active Storage)の保存先。コンテナを作り直しても消えないようボリュームに置く
+    volumes:
+      - naiken_storage:/rails/storage
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:3000/up"]
       interval: 10s
@@ -38,3 +41,6 @@ services:
       retries: 6
       start_period: 30s
     restart: unless-stopped
+
+volumes:
+  naiken_storage:
