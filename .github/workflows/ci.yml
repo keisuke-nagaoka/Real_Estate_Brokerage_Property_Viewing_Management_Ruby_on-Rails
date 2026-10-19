@@ -58,8 +58,9 @@ jobs:
       - name: Security (bundler-audit)
         run: bin/bundler-audit
 
+      # db:prepare はDBを新規作成したときに db:seed も実行し、テストDBにデモデータが入ってしまうため使わない
       - name: Prepare database
-        run: bin/rails db:prepare
+        run: bin/rails db:create db:schema:load
 
       - name: Test (RSpec)
         run: bundle exec rspec

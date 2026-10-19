@@ -164,6 +164,7 @@ Browser ──HTTPS──> nginx
 - **削除できない理由が意図と違った**：成約済みかつ内見予定のある顧客を削除しようとすると、「内見予定が存在しているので削除できません」が先に返った。`has_many ... dependent: :restrict_with_error` のチェックが `before_destroy` より先に動くためで、`before_destroy ..., prepend: true` にして成約済みのチェックを先に行うようにした
 - **マイグレーション後に500エラーになった**：顧客に `status` 列を追加した後、起動中の開発サーバーで「Undeclared attribute type for enum 'status'」というエラーになった。サーバーが列情報を起動時に読み込んで保持していたためで、再起動で解消した
 - **新しいディレクトリが読み込まれなかった**：`app/serializers` を追加した直後は `uninitialized constant` になった。Rails の自動読み込みの対象ディレクトリは起動時に決まるため、サーバーの再起動が必要だった
+- **ローカルでは通るテストがCIだけで失敗した**：GitHub Actions で RSpec が15件失敗した。CIではテスト用DBを毎回新しく作るが、`bin/rails db:prepare` は「DBを新規作成したとき」に `db:seed` も実行するため、テスト用DBにデモデータが入り、件数や並び順を確認するテストが失敗していた。ローカルではテスト用DBが作成済みだったため気づかなかった。CIでは `db:create db:schema:load` を使うように変更した
 - **テストでは配信パスが `/naiken/` にならなかった**：API クライアントのテストで、リクエスト先が `/naiken/api/v1/...` ではなく `/api/v1/...` になった。Vitest 実行時は `import.meta.env.BASE_URL` が `/` になるため、期待値も `BASE_URL` から組み立てるようにした
 
 ## テスト・CI
