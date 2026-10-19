@@ -7,7 +7,9 @@ Rails.application.routes.draw do
     namespace :v1 do
       resource :health, only: :show, controller: :health
       resources :agents, only: :index
-      resources :customers, only: %i[index show create update destroy]
+      resources :customers, only: %i[index show create update destroy] do
+        patch :status, on: :member, action: :change_status
+      end
       resources :properties, only: %i[index show create update destroy]
       resources :viewings, only: %i[index show create update] do
         member do

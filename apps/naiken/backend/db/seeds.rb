@@ -15,7 +15,10 @@ customers = [
   { name: "中村 大輔", name_kana: "ナカムラ ダイスケ", email: "nakamura@example.com", phone: "090-7777-8888", budget_max: 7000, desired_area: "目黒区" },
   { name: "小林 さくら", name_kana: "コバヤシ サクラ", phone: "080-9999-0000", budget_max: 3800, desired_area: "練馬区", note: "ペット可物件のみ" },
   { name: "加藤 拓也", name_kana: "カトウ タクヤ", email: "kato@example.com", budget_max: 5500, desired_area: "品川区" },
-  { name: "吉田 愛", name_kana: "ヨシダ アイ", email: "yoshida@example.com", phone: "090-1212-3434", budget_max: 4200, desired_area: "横浜市港北区" }
+  { name: "吉田 愛", name_kana: "ヨシダ アイ", email: "yoshida@example.com", phone: "090-1212-3434", budget_max: 4200, desired_area: "横浜市港北区" },
+  { name: "松本 健", name_kana: "マツモト ケン", email: "matsumoto@example.com", phone: "090-5656-7878", budget_max: 6500, desired_area: "世田谷区" },
+  { name: "井上 真理", name_kana: "イノウエ マリ", email: "inoue@example.com", budget_max: 3500, desired_area: "杉並区", note: "他社で購入のため失注" },
+  { name: "木村 翔太", name_kana: "キムラ ショウタ", phone: "080-2468-1357", budget_max: 5000, desired_area: "目黒区・品川区", note: "Webから資料請求" }
 ]
 
 customers.each_with_index do |attrs, i|
@@ -53,6 +56,7 @@ if Viewing.none?
     { customer: "山田 太郎", property: "パークハウス世田谷桜丘", starts_at: at.(-7, 10), status: "completed", note: "日当たりを気に入っていた" },
     { customer: "田中 花子", property: "ブリリア杉並高井戸", starts_at: at.(-5, 14), status: "completed" },
     { customer: "伊藤 誠", property: "ザ・パークハウス港南", starts_at: at.(-3, 11), status: "canceled", note: "顧客都合でキャンセル" },
+    { customer: "松本 健", property: "パークハウス世田谷桜丘", starts_at: at.(-10, 13), status: "completed", note: "購入申込みへ" },
     # 今後の予定
     { customer: "山田 太郎", property: "コスモ三軒茶屋", starts_at: at.(1, 10) },
     { customer: "中村 大輔", property: "プラウド目黒本町", starts_at: at.(1, 14) },
@@ -72,6 +76,16 @@ if Viewing.none?
       status: attrs.fetch(:status, "scheduled"),
       note: attrs[:note]
     )
+  end
+
+  # 内見予定の登録で「内見予定」に自動で進むため、それ以外のステータスの顧客を遷移ルールに沿って変更する
+  {
+    "田中 花子" => %w[considering],
+    "松本 健" => %w[viewing_scheduled contracted],
+    "井上 真理" => %w[lost]
+  }.each do |name, statuses|
+    c = customer.(name)
+    statuses.each { |status| c.change_status(status) || raise("#{name}: #{c.errors.full_messages.join}") }
   end
 end
 

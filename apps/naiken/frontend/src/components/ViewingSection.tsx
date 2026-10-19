@@ -10,10 +10,11 @@ type Props = {
   addLink?: string
   hideCustomer?: boolean
   hideProperty?: boolean
+  onChange?: (viewing: Viewing) => void
 }
 
 // 顧客・物件の詳細画面に表示する内見予定の一覧
-export function ViewingSection({ query, addLink, hideCustomer, hideProperty }: Props) {
+export function ViewingSection({ query, addLink, hideCustomer, hideProperty, onChange }: Props) {
   const [viewings, setViewings] = useState<Viewing[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const { customer_id, property_id } = query
@@ -29,7 +30,10 @@ export function ViewingSection({ query, addLink, hideCustomer, hideProperty }: P
     }
   }, [customer_id, property_id])
 
-  const replace = (updated: Viewing) => setViewings((prev) => prev?.map((v) => (v.id === updated.id ? updated : v)) ?? null)
+  const replace = (updated: Viewing) => {
+    setViewings((prev) => prev?.map((v) => (v.id === updated.id ? updated : v)) ?? null)
+    onChange?.(updated)
+  }
 
   return (
     <section className="section">

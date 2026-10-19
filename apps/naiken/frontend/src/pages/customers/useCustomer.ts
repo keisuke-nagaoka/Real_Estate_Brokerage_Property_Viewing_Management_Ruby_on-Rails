@@ -7,6 +7,8 @@ export function useCustomer(id: string | undefined) {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
+  // 内見予定の操作でステータスが自動で変わることがあるため、再取得できるようにする
+  const [version, setVersion] = useState(0)
 
   useEffect(() => {
     if (!id) return
@@ -22,7 +24,7 @@ export function useCustomer(id: string | undefined) {
     return () => {
       ignore = true
     }
-  }, [id])
+  }, [id, version])
 
-  return { customer, error, notFound }
+  return { customer, setCustomer, reload: () => setVersion((v) => v + 1), error, notFound }
 }

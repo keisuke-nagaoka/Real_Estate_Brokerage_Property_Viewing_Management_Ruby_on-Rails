@@ -84,6 +84,21 @@ RSpec.describe "Api::V1::Viewings", type: :request do
       expect(response.parsed_body["error"]["details"]["property"]).to eq [ "物件は掲載終了のため、内見予定を登録できません" ]
     end
 
+    it "成約の顧客の場合は422を返す" do
+      customer.update_column(:status, "contracted")
+
+      post "/api/v1/viewings", params:, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["error"]["details"]["customer"]).to eq [ "顧客が成約のため、内見予定を登録できません" ]
+    end
+
+    it "登録すると顧客のステータスが「内見予定」に進む" do
+      post "/api/v1/viewings", params:, as: :json
+
+      expect(customer.reload).to be_viewing_scheduled
+    end
+
     it "ステータスは指定できない(常に予定として登録する)" do
       post "/api/v1/viewings", params: params.deep_merge(viewing: { status: "completed" }), as: :json
 

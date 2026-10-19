@@ -60,7 +60,12 @@ export function ViewingForm({ initial, defaults, submitLabel, onSubmit, onCancel
 
   useEffect(() => {
     // 小規模な運用を想定し、選択肢は上限100件までまとめて取得する
-    Promise.all([customersApi.list({ per_page: 100 }), propertiesApi.list({ status: 'available', per_page: 100 }), agentsApi.list()])
+    // 成約・失注の顧客、掲載終了の物件は選択肢に出さない
+    Promise.all([
+      customersApi.list({ status: 'inquiry,viewing_scheduled,considering', per_page: 100 }),
+      propertiesApi.list({ status: 'available', per_page: 100 }),
+      agentsApi.list(),
+    ])
       .then(([customerRes, propertyRes, agentRes]) => {
         setCustomers(customerRes.data)
         setProperties(propertyRes.data)
@@ -112,6 +117,12 @@ export function ViewingForm({ initial, defaults, submitLabel, onSubmit, onCancel
 
   const errorsFor = (...keys: string[]) => keys.flatMap((key) => fieldErrors[key] ?? [])
 
+  // 編集時、成約・失注になった顧客も選択肢に残す
+  const customerOptions =
+    initial && !customers.some((c) => c.id === initial.customer.id)
+      ? [{ id: initial.customer.id, name: initial.customer.name, name_kana: '' }, ...customers]
+      : customers
+
   // 編集時、掲載終了になった物件も選択肢に残す
   const propertyOptions =
     initial && !properties.some((p) => p.id === initial.property.id)
@@ -123,12 +134,13 @@ export function ViewingForm({ initial, defaults, submitLabel, onSubmit, onCancel
       {error && <p className="alert alert-error">{error}</p>}
 
       <div className="form-row">
-        <Field label="顧客" required errors={errorsFor('customer', 'customer_id')}>
+        <Field label="顧客（成約・失注を除く）" required errors={errorsFor('customer', 'customer_id')}>
           <select className="input" value={form.customer_id} onChange={(e) => handleCustomerChange(e.target.value)}>
             <option value="">選択してください</option>
-            {customers.map((customer) => (
+            {customerOptions.map((customer) => (
               <option key={customer.id} value={customer.id}>
-                {customer.name}（{customer.name_kana}）
+                {customer.name}
+                {customer.name_kana && `（${customer.name_kana}）`}
               </option>
             ))}
           </select>

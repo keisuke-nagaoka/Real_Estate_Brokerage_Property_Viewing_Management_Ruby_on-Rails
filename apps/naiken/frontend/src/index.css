@@ -565,3 +565,146 @@ h1 {
 .toolbar > .segmented:first-child {
   margin-left: 0;
 }
+
+/* 顧客の対応ステータス */
+.badge-cs-inquiry {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.badge-cs-viewing_scheduled {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.badge-cs-considering {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.badge-cs-contracted {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-cs-lost {
+  background: #f3f4f6;
+  color: var(--muted);
+}
+
+.alert-success {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.status-card {
+  margin-bottom: 16px;
+  padding: 14px 20px;
+}
+
+.status-changer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-changer .alert {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+}
+
+.btn-cs-contracted {
+  border-color: #86efac;
+  color: #15803d;
+}
+
+.btn-cs-lost {
+  color: var(--muted);
+}
+
+/* ステータス別ボード */
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(200px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.board-column {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: #ededf3;
+  border-top: 3px solid var(--border);
+}
+
+.board-cs-inquiry {
+  border-top-color: #38bdf8;
+}
+
+.board-cs-viewing_scheduled {
+  border-top-color: var(--accent);
+}
+
+.board-cs-considering {
+  border-top-color: #f59e0b;
+}
+
+.board-cs-contracted {
+  border-top-color: #22c55e;
+}
+
+.board-cs-lost {
+  border-top-color: #9ca3af;
+}
+
+.board-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  font-weight: 700;
+}
+
+.board-count {
+  min-width: 26px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fff;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.board-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 10px 12px;
+}
+
+.board-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.board-card:hover {
+  border-color: var(--accent);
+}
+
+.board-card-name {
+  font-weight: 700;
+}
+
+.board-empty {
+  margin: 4px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+}

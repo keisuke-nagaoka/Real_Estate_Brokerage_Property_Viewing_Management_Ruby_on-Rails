@@ -11,10 +11,13 @@ class Viewing < ApplicationRecord
   validates :note, length: { maximum: 2000 }
   validate :ends_after_starts
   validate :property_must_be_available
+  validate :customer_must_be_active
   validate :agent_schedule_must_not_overlap
   validate :only_scheduled_can_be_changed, on: :update
 
   normalizes :note, with: ->(value) { value.strip.presence }
+
+  after_create :advance_customer_status, if: :scheduled?
 
   scope :overlapping, ->(starts_at, ends_at) { where("starts_at < ? AND ends_at > ?", ends_at, starts_at) }
   scope :starts_on_or_after, ->(date) { where(starts_at: date.in_time_zone.beginning_of_day..) }
@@ -36,7 +39,13 @@ class Viewing < ApplicationRecord
       errors.add(:base, :not_started_yet)
       return false
     end
-    update(status: :completed)
+
+    transaction do
+      raise ActiveRecord::Rollback unless update(status: :completed)
+
+      customer.advance_status_for_completed_viewing!
+    end
+    errors.empty?
   end
 
   def cancel
@@ -66,6 +75,18 @@ class Viewing < ApplicationRecord
     return unless new_record? || will_save_change_to_property_id?
 
     errors.add(:property, :closed)
+  end
+
+  # 成約・失注の顧客には新しく内見予定を入れられない
+  def customer_must_be_active
+    return unless customer&.closed?
+    return unless new_record? || will_save_change_to_customer_id?
+
+    errors.add(:customer, :closed, status: Customer.human_attribute_name("status/#{customer.status}"))
+  end
+
+  def advance_customer_status
+    customer.advance_status_for_new_viewing!
   end
 
   def agent_schedule_must_not_overlap

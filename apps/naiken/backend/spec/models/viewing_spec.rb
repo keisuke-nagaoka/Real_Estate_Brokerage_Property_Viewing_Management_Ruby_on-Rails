@@ -83,6 +83,22 @@ RSpec.describe Viewing, type: :model do
     end
   end
 
+  describe "業務ルール: 成約・失注の顧客" do
+    it "成約の顧客には内見予定を登録できない" do
+      viewing = build_viewing(starts_at: base_time, ends_at: base_time + 1.hour, customer: create(:customer, :contracted, agent:))
+
+      expect(viewing).to be_invalid
+      expect(viewing.errors.full_messages).to include("顧客が成約のため、内見予定を登録できません")
+    end
+
+    it "失注の顧客には内見予定を登録できない" do
+      viewing = build_viewing(starts_at: base_time, ends_at: base_time + 1.hour, customer: create(:customer, :lost, agent:))
+
+      expect(viewing).to be_invalid
+      expect(viewing.errors.full_messages).to include("顧客が失注のため、内見予定を登録できません")
+    end
+  end
+
   describe "#complete" do
     it "開始時刻を過ぎた予定を実施済みにできる" do
       viewing = create(:viewing, starts_at: 1.hour.ago, ends_at: Time.current)

@@ -27,6 +27,16 @@ RSpec.describe "Api::V1::Customers", type: :request do
       expect(response.parsed_body["data"].pluck("id")).to eq [ target.id ]
     end
 
+    it "ステータスで絞り込める(カンマ区切りで複数指定可)" do
+      inquiry = create(:customer, agent:)
+      considering = create(:customer, :considering, agent:)
+      create(:customer, :lost, agent:)
+
+      get "/api/v1/customers", params: { status: "inquiry,considering,unknown" }
+
+      expect(response.parsed_body["data"].pluck("id")).to contain_exactly(inquiry.id, considering.id)
+    end
+
     it "per_page と page でページングできる" do
       customers = create_list(:customer, 3, agent:).sort_by(&:id).reverse
 
@@ -92,6 +102,12 @@ RSpec.describe "Api::V1::Customers", type: :request do
       expect(response.parsed_body["error"]).to include("code" => "bad_request")
     end
 
+    it "ステータスは指定できない(常に「問い合わせ」で登録する)" do
+      post "/api/v1/customers", params: valid_params.deep_merge(customer: { status: "contracted" }), as: :json
+
+      expect(response.parsed_body["data"]).to include("status" => "inquiry", "next_statuses" => %w[viewing_scheduled considering lost])
+    end
+
     it "許可していない属性は無視する" do
       post "/api/v1/customers", params: valid_params.deep_merge(customer: { id: 9999 }), as: :json
 
@@ -117,6 +133,46 @@ RSpec.describe "Api::V1::Customers", type: :request do
     end
   end
 
+  describe "PATCH /api/v1/customers/:id/status" do
+    it "遷移ルールを満たす場合はステータスを変更し、キャンセルした内見予定の件数を返す" do
+      viewing = create(:viewing, customer: create(:customer, agent:), agent:)
+
+      patch "/api/v1/customers/#{viewing.customer_id}/status", params: { status: "contracted" }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"]).to include("status" => "contracted", "next_statuses" => [])
+      expect(response.parsed_body["meta"]).to eq("canceled_viewings_count" => 1)
+    end
+
+    it "遷移ルールを満たさない場合は422を返す" do
+      customer = create(:customer, agent:)
+
+      patch "/api/v1/customers/#{customer.id}/status", params: { status: "contracted" }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["error"]["message"]).to eq "対応ステータスを「問い合わせ」から「成約」に変更することはできません"
+    end
+
+    it "status が指定されていない場合は400を返す" do
+      customer = create(:customer, agent:)
+
+      patch "/api/v1/customers/#{customer.id}/status", params: {}, as: :json
+
+      expect(response).to have_http_status(:bad_request)
+    end
+  end
+
+  describe "PATCH /api/v1/customers/:id のステータス" do
+    it "通常の更新ではステータスを変更できない(無視する)" do
+      customer = create(:customer, agent:)
+
+      patch "/api/v1/customers/#{customer.id}", params: { customer: { name: "山田 一郎", status: "lost" } }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(customer.reload).to have_attributes(name: "山田 一郎", status: "inquiry")
+    end
+  end
+
   describe "DELETE /api/v1/customers/:id" do
     it "顧客を削除し204を返す" do
       customer = create(:customer, agent:)
@@ -126,6 +182,15 @@ RSpec.describe "Api::V1::Customers", type: :request do
       }.to change(Customer, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)
+    end
+
+    it "成約済みの顧客は削除できず422を返す" do
+      customer = create(:customer, :contracted, agent:)
+
+      delete "/api/v1/customers/#{customer.id}"
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["error"]["message"]).to eq "成約済みの顧客は削除できません"
     end
   end
 end

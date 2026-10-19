@@ -4,10 +4,14 @@ export type Agent = {
   email: string
 }
 
+export type CustomerStatus = 'inquiry' | 'viewing_scheduled' | 'considering' | 'contracted' | 'lost'
+
 export type Customer = {
   id: number
   name: string
   name_kana: string
+  status: CustomerStatus
+  next_statuses: CustomerStatus[]
   email: string | null
   phone: string | null
   budget_max: number | null

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000005) do
   create_table "agents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", null: false
@@ -21,6 +21,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000004) do
 
   create_table "customers", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "agent_id", null: false
+    t.string "status", default: "inquiry", null: false, comment: "対応ステータス(inquiry: 問い合わせ / viewing_scheduled: 内見予定 / considering: 検討中 / contracted: 成約 / lost: 失注)"
     t.string "name", null: false
     t.string "name_kana", null: false
     t.string "email"
@@ -32,6 +33,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000004) do
     t.datetime "updated_at", null: false
     t.index ["agent_id"], name: "index_customers_on_agent_id"
     t.index ["name_kana"], name: "index_customers_on_name_kana"
+    t.index ["status"], name: "index_customers_on_status"
   end
 
   create_table "properties", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

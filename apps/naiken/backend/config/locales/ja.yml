@@ -20,6 +20,12 @@ ja:
         budget_max: 予算上限
         desired_area: 希望エリア
         note: メモ
+        status: 対応ステータス
+        status/inquiry: 問い合わせ
+        status/viewing_scheduled: 内見予定
+        status/considering: 検討中
+        status/contracted: 成約
+        status/lost: 失注
         viewings: 内見予定
       property:
         name: 物件名
@@ -52,6 +58,9 @@ ja:
               invalid: は全角カタカナで入力してください
             phone:
               invalid: は「090-1234-5678」の形式で入力してください
+            status:
+              invalid_transition: "を「%{from}」から「%{to}」に変更することはできません"
+          contracted_cannot_be_destroyed: 成約済みの顧客は削除できません
         property:
           attributes:
             layout:
@@ -64,6 +73,8 @@ ja:
               must_be_after_starts_at: は開始日時より後にしてください
             property:
               closed: は掲載終了のため、内見予定を登録できません
+            customer:
+              closed: "が%{status}のため、内見予定を登録できません"
           not_started_yet: 開始時刻前の内見予定は実施済みにできません
           already_closed: "%{status}の内見予定は変更できません"
           agent_schedule_overlap: "担当者の別の内見予定（%{starts_at}〜%{ends_at}）と時間が重複しています"
