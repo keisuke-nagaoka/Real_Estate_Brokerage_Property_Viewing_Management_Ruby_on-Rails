@@ -13,7 +13,8 @@ PHP / Laravel で業務システムを開発してきた経験を、Ruby on Rail
 | バックエンド | Ruby 3.4 / Ruby on Rails 8.1 (API mode) |
 | フロントエンド | React 19 / TypeScript / Vite |
 | DB | MySQL 8.0 (本番: Amazon RDS for MySQL) |
-| テスト・静的解析 | RSpec / FactoryBot / RuboCop / Brakeman |
+| テスト・静的解析 | RSpec / FactoryBot / RuboCop / Brakeman / bundler-audit（バックエンド）、Vitest / Testing Library / oxlint（フロントエンド） |
+| CI | GitHub Actions |
 | インフラ | Docker / nginx / AWS (EC2, RDS, Route 53) |
 
 ```
@@ -34,7 +35,7 @@ Browser ──HTTPS──> nginx (EC2)
    │            │         │
    └────────────┴─────────┴──→ 失注 ─→ 問い合わせ（再開）
 ```
-- [ ] APIのテスト、入力値検証、エラーハンドリング
+- [x] APIのテスト、入力値検証、エラーハンドリング（RSpec 127件・Vitest 25件、GitHub Actions で自動実行）
 
 ### 業務ルール (予定)
 
@@ -73,11 +74,26 @@ Browser ──HTTPS──> nginx (EC2)
 | PATCH | `/naiken/api/v1/viewings/:id/complete` | 実施済みにする |
 | PATCH | `/naiken/api/v1/viewings/:id/cancel` | キャンセルする |
 
-エラーは常に次の形式で返す（バリデーションエラーは422、存在しない場合は404）。
+エラーは常に次の形式で返す。
 
 ```json
 { "error": { "code": "validation_failed", "message": "氏名を入力してください", "details": { "name": ["氏名を入力してください"] } } }
 ```
+
+| ステータス | `code` | 発生する場面 |
+| --- | --- | --- |
+| 400 | `bad_request` | 必須のキーがない、JSONとして解釈できない、日付の形式が不正 |
+| 404 | `not_found` / `route_not_found` | データが存在しない / URLが存在しない |
+| 422 | `validation_failed` | 入力値の誤り、業務ルール違反（`details` に項目ごとのメッセージ、業務ルール違反は `base`） |
+| 500 | `internal_server_error` | 想定外のエラー（内部情報は返さず、ログと突き合わせるための `request_id` だけを返す） |
+
+## テスト
+
+| 対象 | 内容 |
+| --- | --- |
+| モデル (RSpec) | バリデーション、正規化、検索、業務ルール（予定の重複、ステータスの遷移表の全パターン、自動キャンセルなど） |
+| API (RSpec) | 各エンドポイントの正常系・異常系、絞り込み、エラーレスポンスの形式 |
+| フロントエンド (Vitest) | 価格・日時の表示変換（日本時間の扱い）、APIクライアントのエラー処理、ステータス変更ボタン、入力欄のエラー表示 |
 
 ## 設計で意識したこと
 
@@ -88,6 +104,8 @@ Browser ──HTTPS──> nginx (EC2)
 - 一覧取得では `includes(:agent)` で担当者をまとめて読み込み、N+1問題を防いでいる
 - 検索の `LIKE` では `sanitize_sql_like` で `%` `_` をエスケープし、ユーザー入力がワイルドカードとして解釈されないようにした
 - 入力値の表記ゆれ（全角の電話番号、前後の空白、空文字）は `normalizes` で保存前に正規化した
+- 想定外のエラー(500)では例外メッセージやスタックトレースを返さないようにした。開発・テスト環境では原因を追いやすいよう、Rails標準のエラー表示に任せている
+- どのルートにも一致しないURLもHTMLではなくJSONの404を返し、フロントエンドが常に同じ形式でエラーを扱えるようにした
 - 一覧の検索条件はURLのクエリに持たせ、リロードやブラウザバックでも条件が保持されるようにした
 - 価格は「万円」単位の整数で保存し、小数の誤差が出ないようにした。専有面積は `decimal` で保存し、JSONでは文字列にならないよう数値に変換して返す
 - 内見予定のステータスは通常の更新APIでは変更できないようにし、`complete` / `cancel` という専用のエンドポイントでのみ遷移させた。どの状態からどの状態に変われるかをモデルのメソッドに閉じ込め、不正な遷移をAPIの入口で防いでいる
@@ -118,6 +136,7 @@ Browser ──HTTPS──> nginx (EC2)
 | 関連先がある場合の削除禁止 | 外部キー制約の例外を捕まえる / 自前でチェック | `dependent: :restrict_with_error`（バリデーションエラーとして扱える） |
 | RESTに当てはまらない操作 | `Route::patch('viewings/{id}/complete')` | `member do patch :complete end` |
 | モデルのコールバック | Observer / `booted()` 内のイベント | `after_create` / `before_destroy` など（`prepend: true` で実行順を制御） |
+| 例外の共通処理 | `bootstrap/app.php` の `withExceptions` / Handler | コントローラーの `rescue_from`（後に書いたものが優先される） |
 | テスト | PHPUnit / Pest | RSpec + FactoryBot |
 
 ## 実装中に調べたこと・解決したこと
@@ -131,4 +150,5 @@ Browser ──HTTPS──> nginx (EC2)
 - **削除できないときのメッセージが英語の関連名になった**：`restrict_with_error` のメッセージが「viewingsが存在しているので削除できません」になった。関連名(`viewings`)は「親モデルの属性名」として翻訳を探すため、顧客・物件・担当者それぞれの属性に `viewings: 内見予定` を追加した
 - **マイグレーション後に500エラーになった**：顧客に `status` 列を追加した後、起動中の開発サーバーで「Undeclared attribute type for enum 'status'」というエラーになった。サーバーが列情報を起動時に読み込んで保持していたためで、再起動で解消した
 - **削除できない理由が意図と違った**：成約済みかつ内見予定のある顧客を削除しようとすると、「内見予定が存在しているので削除できません」が先に返った。`has_many ... dependent: :restrict_with_error` のチェックが `before_destroy` より先に動くためで、`before_destroy ..., prepend: true` にして成約済みのチェックを先に行うようにした
+- **テストでは配信パスが `/naiken/` にならなかった**：APIクライアントのテストで、リクエスト先が `/naiken/api/v1/...` ではなく `/api/v1/...` になった。Vitest 実行時は `import.meta.env.BASE_URL` が `/` になるため、期待値も `BASE_URL` から組み立てるようにした
 - **新しいディレクトリが読み込まれなかった**：`app/serializers` を追加した直後は `uninitialized constant` になった。Rails の自動読み込みの対象ディレクトリは起動時に決まるため、サーバーの再起動が必要だった

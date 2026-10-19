@@ -1,0 +1,119 @@
+# push・プルリクエストごとに、バックエンド/フロントエンドのテストと静的解析、本番用イメージのビルドを行う
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Rails)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/naiken/backend
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      RAILS_ENV: test
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install MySQL client library
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libmysqlclient-dev
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: apps/naiken/backend
+          bundler-cache: true
+
+      - name: Lint (RuboCop)
+        run: bin/rubocop -f github
+
+      - name: Security (Brakeman)
+        run: bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error
+
+      - name: Security (bundler-audit)
+        run: bin/bundler-audit
+
+      - name: Prepare database
+        run: bin/rails db:prepare
+
+      - name: Test (RSpec)
+        run: bundle exec rspec
+
+  frontend:
+    name: Frontend (React)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/naiken/frontend
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/naiken/frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Lint (oxlint)
+        run: npm run lint
+
+      - name: Test (Vitest)
+        run: npm test
+
+      - name: Type check & build
+        run: npm run build
+
+  docker:
+    name: Production images
+    runs-on: ubuntu-latest
+    # EC2で使う本番用イメージ(compose.prod.yml)がビルドできることを確認する(プッシュはしない)
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build Rails API image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/ruby/Dockerfile.prod
+          push: false
+          cache-from: type=gha,scope=naiken-api
+          cache-to: type=gha,mode=max,scope=naiken-api
+
+      - name: Build nginx image (React build included)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/nginx/Dockerfile.prod
+          push: false
+          cache-from: type=gha,scope=rails-nginx
+          cache-to: type=gha,mode=max,scope=rails-nginx

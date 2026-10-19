@@ -1,5 +1,7 @@
 # rails_docker
 
+[![CI](https://github.com/keisuke-nagaoka/Ruby-on-Rails_App/actions/workflows/ci.yml/badge.svg)](https://github.com/keisuke-nagaoka/Ruby-on-Rails_App/actions/workflows/ci.yml)
+
 Ruby on Rails アプリのローカル開発環境。`go_docker` / `node_docker` と同じ考え方で、
 1つのnginxの配下にパス単位 (`/naiken/`, ...) で複数アプリを振り分ける構成。
 本番では `rails.keisuke-nagaoka.com` 配下で、EC2上のnginx → 各コンテナ、DBは Amazon RDS for MySQL に接続する想定。
@@ -37,7 +39,7 @@ rails_docker/
 | Ruby / Rails | 3.4 / 8.1 (API mode) |
 | Node.js / React / Vite | 24 / 19 / 8 |
 | DB | MySQL 8.0 (本番: Amazon RDS for MySQL) |
-| テスト | RSpec, FactoryBot |
+| テスト | RSpec, FactoryBot (バックエンド) / Vitest, Testing Library (フロントエンド) |
 
 ## 起動
 
@@ -76,15 +78,27 @@ docker compose exec naiken-api bin/rails console
 docker compose exec naiken-api bundle exec rspec
 docker compose exec naiken-api bin/rubocop
 docker compose exec naiken-api bin/brakeman
+docker compose exec naiken-api bin/ci                 # RuboCop・セキュリティチェック・RSpecをまとめて実行
 
 # React
 docker compose exec naiken-web npm install <package>
 docker compose exec naiken-web npm run lint
+docker compose exec naiken-web npm test               # Vitest
 docker compose exec naiken-web npm run build
 ```
 
 > nginxの設定ファイルを編集した場合は `docker compose up -d --force-recreate nginx` で反映する
 > (Docker Desktop(WSL)では、単一ファイルのbind mountがエディタの保存方法によって追従しないことがあるため)。
+
+## CI (GitHub Actions)
+
+`.github/workflows/ci.yml` で、push・プルリクエストごとに以下を実行する。
+
+| ジョブ | 内容 |
+| --- | --- |
+| Backend (Rails) | RuboCop / Brakeman / bundler-audit / RSpec (MySQL 8.0 をサービスコンテナで起動) |
+| Frontend (React) | oxlint / Vitest / 型チェック・ビルド |
+| Production images | 本番用の Rails API イメージ・nginx イメージがビルドできることを確認 (プッシュはしない) |
 
 ## ローカルと本番でDBを切り替える構成
 
