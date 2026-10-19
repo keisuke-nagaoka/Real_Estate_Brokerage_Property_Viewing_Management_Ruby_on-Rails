@@ -1,0 +1,26 @@
+ja:
+  activerecord:
+    models:
+      agent: 担当者
+      customer: 顧客
+    attributes:
+      agent:
+        name: 氏名
+        email: メールアドレス
+      customer:
+        agent: 担当者
+        name: 氏名
+        name_kana: フリガナ
+        email: メールアドレス
+        phone: 電話番号
+        budget_max: 予算上限
+        desired_area: 希望エリア
+        note: メモ
+    errors:
+      models:
+        customer:
+          attributes:
+            name_kana:
+              invalid: は全角カタカナで入力してください
+            phone:
+              invalid: は「090-1234-5678」の形式で入力してください

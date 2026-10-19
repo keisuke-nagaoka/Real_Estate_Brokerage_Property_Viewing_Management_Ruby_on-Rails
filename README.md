@@ -69,6 +69,7 @@ docker compose up -d
 
 ```bash
 # Rails
+docker compose exec naiken-api bin/rails db:seed    # デモデータ投入(何度実行しても同じ状態になる)
 docker compose exec naiken-api bin/rails g model Customer name:string
 docker compose exec naiken-api bin/rails db:migrate
 docker compose exec naiken-api bin/rails console

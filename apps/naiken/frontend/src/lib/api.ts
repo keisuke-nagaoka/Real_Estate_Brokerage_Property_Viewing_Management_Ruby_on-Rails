@@ -1,12 +1,68 @@
 // APIは同一オリジンの /naiken/api/ 配下(nginxがRailsへ転送)にあるためCORS設定は不要
 const API_BASE = `${import.meta.env.BASE_URL}api/v1`
 
-export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { Accept: 'application/json' },
-  })
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status} ${res.statusText}`)
+// Rails側のエラーレスポンス { error: { code, message, details } } に対応する
+export type ApiErrorBody = {
+  code: string
+  message: string
+  details?: Record<string, string[]>
+}
+
+export class ApiError extends Error {
+  readonly status: number
+  readonly code: string
+  readonly details: Record<string, string[]>
+
+  constructor(status: number, body: ApiErrorBody) {
+    super(body.message)
+    this.status = status
+    this.code = body.code
+    this.details = body.details ?? {}
   }
-  return res.json() as Promise<T>
+}
+
+type Query = Record<string, string | number | undefined | null>
+
+function buildUrl(path: string, query?: Query): string {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value !== undefined && value !== null && value !== '') {
+      params.set(key, String(value))
+    }
+  }
+  const qs = params.toString()
+  return `${API_BASE}${path}${qs ? `?${qs}` : ''}`
+}
+
+async function request<T>(method: string, path: string, options: { query?: Query; body?: unknown } = {}): Promise<T> {
+  const res = await fetch(buildUrl(path, options.query), {
+    method,
+    headers: {
+      Accept: 'application/json',
+      ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+    },
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+  })
+
+  if (res.status === 204) {
+    return undefined as T
+  }
+
+  const json = await res.json().catch(() => null)
+  if (!res.ok) {
+    const body: ApiErrorBody = json?.error ?? { code: 'unknown', message: `通信エラーが発生しました (${res.status})` }
+    throw new ApiError(res.status, body)
+  }
+  return json as T
+}
+
+export const api = {
+  get: <T>(path: string, query?: Query) => request<T>('GET', path, { query }),
+  post: <T>(path: string, body: unknown) => request<T>('POST', path, { body }),
+  patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, { body }),
+  delete: (path: string) => request<void>('DELETE', path),
+}
+
+export function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
 }
