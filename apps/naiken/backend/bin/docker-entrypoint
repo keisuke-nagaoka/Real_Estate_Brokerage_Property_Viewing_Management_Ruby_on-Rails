@@ -1,0 +1,8 @@
+#!/bin/bash -e
+
+# Railsサーバー起動時のみ、DBの作成・未適用マイグレーションの実行を行う
+if [ "$1" == "./bin/rails" ] && [ "$2" == "server" ]; then
+  ./bin/rails db:prepare
+fi
+
+exec "$@"

@@ -1,0 +1,17 @@
+# compose.prod.yml のビルドコンテキスト(rails_docker/)から除外するファイル
+**/.git
+**/node_modules
+**/dist
+
+# 秘密情報はイメージに含めない
+**/.env
+**/.env.*
+**/config/master.key
+docker/nginx/server.crt
+docker/nginx/server.key
+
+# 実行時に生成されるファイル
+docker/mysql/data
+**/log/*
+**/tmp/*
+**/coverage

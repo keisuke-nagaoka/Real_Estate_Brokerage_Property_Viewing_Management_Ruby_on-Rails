@@ -1,0 +1,16 @@
+/.bundle
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/tmp/pids/*
+!/tmp/pids/.keep
+/storage/*
+/coverage
+
+# Environment variables / secrets
+/.env
+/.env.*
+!/.env.example
+!/.env.production.example
+/config/master.key

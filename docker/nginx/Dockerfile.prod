@@ -1,0 +1,15 @@
+# syntax=docker/dockerfile:1
+
+# 本番(EC2)用のnginxイメージ。Reactのビルド成果物を /usr/share/nginx/html/<アプリ名>/ に焼き込む。
+# ビルドコンテキストは rails_docker/ 直下 (compose.prod.yml 参照)
+FROM node:24-slim AS naiken-build
+WORKDIR /app
+COPY apps/naiken/frontend/package.json apps/naiken/frontend/package-lock.json ./
+RUN npm ci
+COPY apps/naiken/frontend .
+RUN npm run build
+
+# 新しいアプリを追加する場合は、同様のビルドステージを追加して下でCOPYする
+
+FROM nginx:stable
+COPY --from=naiken-build /app/dist /usr/share/nginx/html/naiken

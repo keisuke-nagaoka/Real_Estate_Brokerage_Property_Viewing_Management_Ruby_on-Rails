@@ -1,0 +1,9 @@
+# Build args (UID/GID)
+/.env
+
+# Runtime database files
+/docker/mysql/data/
+
+# Local TLS credentials
+/docker/nginx/server.crt
+/docker/nginx/server.key

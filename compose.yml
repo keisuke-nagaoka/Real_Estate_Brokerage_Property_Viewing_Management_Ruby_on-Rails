@@ -1,0 +1,74 @@
+# ローカル開発用。本番(EC2)では compose.prod.yml を使い、DBはAmazon RDS for MySQLに接続する
+services:
+  nginx:
+    image: nginx
+    container_name: rails_nginx
+    ports:
+      - "9300:80"
+      - "9743:443"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/server.crt:/etc/nginx/ssl/server.crt
+      - ./docker/nginx/server.key:/etc/nginx/ssl/server.key
+    depends_on:
+      - naiken-api
+      - naiken-web
+
+  # Rails API (apps/naiken/backend)
+  naiken-api:
+    container_name: naiken-api
+    build:
+      context: ./docker/ruby
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    volumes:
+      - ./apps/naiken/backend:/app
+      - naiken_bundle:/usr/local/bundle
+    env_file:
+      - ./apps/naiken/backend/.env
+    command: bash -c "bundle install && rm -f tmp/pids/server.pid && bin/rails db:prepare && bin/rails server -b 0.0.0.0 -p 3000"
+    tty: true
+    stdin_open: true
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # React + Vite (apps/naiken/frontend)
+  naiken-web:
+    container_name: naiken-web
+    build:
+      context: ./docker/node
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    volumes:
+      - ./apps/naiken/frontend:/app
+      - naiken_node_modules:/app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+
+  db:
+    image: mysql:8.0
+    container_name: naiken_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: naiken_development
+      MYSQL_USER: naiken_user
+      MYSQL_PASSWORD: naiken_pass
+      TZ: "Asia/Tokyo"
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+      - ./docker/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    ports:
+      - "3310:3306"
+    healthcheck:
+      # 初回初期化中の一時サーバー(ソケット接続のみ)で healthy にならないよう、TCP(127.0.0.1)で確認する
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  naiken_bundle:
+  naiken_node_modules:
