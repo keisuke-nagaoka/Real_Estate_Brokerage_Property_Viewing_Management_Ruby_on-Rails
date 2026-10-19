@@ -30,7 +30,8 @@
 
 | メソッド | パス | 説明 |
 | --- | --- | --- |
-| GET | `/properties?q=&status=&price_min=&price_max=&page=&per_page=` | 一覧・検索（`q` は物件名・住所・最寄り駅の部分一致、価格は万円単位） |
+| GET | `/properties?q=&prefecture=&city=&status=&price_min=&price_max=&page=&per_page=` | 一覧・検索（`q` は物件名・住所・最寄り駅の部分一致、価格は万円単位） |
+| GET | `/properties/areas` | 物件があるエリア（都道府県・市区町村）と件数。絞り込みの選択肢に使う |
 | GET | `/properties/:id` | 詳細 |
 | POST | `/properties` | 登録 |
 | PATCH | `/properties/:id` | 更新（掲載状況の変更を含む） |
@@ -46,6 +47,12 @@
 | PATCH | `/viewings/:id` | 変更（「予定」のもののみ） |
 | PATCH | `/viewings/:id/complete` | 実施済みにする（開始時刻を過ぎたもののみ） |
 | PATCH | `/viewings/:id/cancel` | キャンセルする |
+
+物件の住所は `prefecture`（都道府県）・`city`（市区町村。政令指定都市は区まで）・`address_line`（町名・番地）に分けて登録し、レスポンスにはそれらをつなげた `address` も含めます。
+
+```json
+{ "prefecture": "神奈川県", "city": "川崎市中原区", "address_line": "小杉町1丁目", "address": "神奈川県川崎市中原区小杉町1丁目" }
+```
 
 ## エラーレスポンス
 

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Field } from '../../components/Field'
 import { ApiError, errorMessage } from '../../lib/api'
 import { propertyStatusLabels } from '../../lib/labels'
+import { PREFECTURES } from '../../lib/prefectures'
 import type { Property, PropertyInput, PropertyStatus } from '../../types'
 
 type Props = {
@@ -14,7 +15,9 @@ type Props = {
 function toInput(property?: Property): PropertyInput {
   return {
     name: property?.name ?? '',
-    address: property?.address ?? '',
+    prefecture: property?.prefecture ?? '',
+    city: property?.city ?? '',
+    address_line: property?.address_line ?? '',
     price: property?.price ?? '',
     layout: property?.layout ?? '',
     floor_area: property?.floor_area ?? '',
@@ -64,9 +67,24 @@ export function PropertyForm({ initial, submitLabel, onSubmit, onCancel }: Props
         <input className="input" value={input.name} onChange={(e) => set('name', e.target.value)} placeholder="パークハウス世田谷桜丘" />
       </Field>
 
-      <Field label="住所" required errors={fieldErrors.address}>
-        <input className="input" value={input.address} onChange={(e) => set('address', e.target.value)} placeholder="東京都世田谷区桜丘3丁目" />
-      </Field>
+      <div className="form-row address-row">
+        <Field label="都道府県" required errors={fieldErrors.prefecture}>
+          <select className="input" value={input.prefecture} onChange={(e) => set('prefecture', e.target.value)}>
+            <option value="">選択してください</option>
+            {PREFECTURES.map((prefecture) => (
+              <option key={prefecture} value={prefecture}>
+                {prefecture}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="市区町村" required errors={fieldErrors.city}>
+          <input className="input" value={input.city} onChange={(e) => set('city', e.target.value)} placeholder="世田谷区 / 横浜市港北区" />
+        </Field>
+        <Field label="町名・番地" required errors={fieldErrors.address_line}>
+          <input className="input" value={input.address_line} onChange={(e) => set('address_line', e.target.value)} placeholder="桜丘3丁目" />
+        </Field>
+      </div>
 
       <div className="form-row">
         <Field label="価格（万円）" required errors={fieldErrors.price}>

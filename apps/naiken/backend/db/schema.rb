@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000006) do
   create_table "agents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", null: false
@@ -38,7 +38,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000005) do
 
   create_table "properties", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
-    t.string "address", null: false
+    t.string "prefecture", null: false, comment: "都道府県"
+    t.string "city", null: false, comment: "市区町村(政令指定都市は区まで)"
+    t.string "address_line", null: false, comment: "町名・番地以降"
     t.integer "price", null: false, comment: "価格(万円)"
     t.string "layout", comment: "間取り(例: 3LDK)"
     t.decimal "floor_area", precision: 7, scale: 2, comment: "専有面積(㎡)"
@@ -49,6 +51,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000005) do
     t.text "note"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["prefecture", "city"], name: "index_properties_on_prefecture_and_city"
     t.index ["status", "price"], name: "index_properties_on_status_and_price"
   end
 

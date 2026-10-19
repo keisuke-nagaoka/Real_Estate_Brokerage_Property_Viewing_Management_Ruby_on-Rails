@@ -26,12 +26,40 @@ RSpec.describe "Api::V1::Properties", type: :request do
       expect(response.parsed_body["data"].pluck("id")).to eq [ target.id ]
     end
 
+    it "都道府県・市区町村で絞り込める" do
+      target = create(:property, prefecture: "神奈川県", city: "横浜市港北区")
+      create(:property, prefecture: "神奈川県", city: "川崎市中原区")
+      create(:property, prefecture: "東京都", city: "港区")
+
+      get "/api/v1/properties", params: { prefecture: "神奈川県", city: "横浜市港北区" }
+
+      expect(response.parsed_body["data"].pluck("id")).to eq [ target.id ]
+      expect(response.parsed_body["data"].first).to include(
+        "prefecture" => "神奈川県", "city" => "横浜市港北区", "address" => "神奈川県横浜市港北区桜丘3丁目"
+      )
+    end
+
     it "未定義の掲載状況が指定された場合は絞り込まない" do
       create_list(:property, 2)
 
       get "/api/v1/properties", params: { status: "unknown" }
 
       expect(response.parsed_body["meta"]["total_count"]).to eq 2
+    end
+  end
+
+  describe "GET /api/v1/properties/areas" do
+    it "物件があるエリアと件数を返す" do
+      create(:property, prefecture: "東京都", city: "港区")
+      create(:property, prefecture: "神奈川県", city: "川崎市中原区")
+
+      get "/api/v1/properties/areas"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"]).to eq [
+        { "prefecture" => "東京都", "count" => 1, "cities" => [ { "name" => "港区", "count" => 1 } ] },
+        { "prefecture" => "神奈川県", "count" => 1, "cities" => [ { "name" => "川崎市中原区", "count" => 1 } ] }
+      ]
     end
   end
 
@@ -54,22 +82,24 @@ RSpec.describe "Api::V1::Properties", type: :request do
 
   describe "POST /api/v1/properties" do
     it "物件を登録し201を返す" do
-      params = { property: { name: "パークハウス世田谷", address: "東京都世田谷区", price: 5980, layout: "３ldk", floor_area: "72.4" } }
+      params = { property: { name: "パークハウス世田谷", prefecture: "東京都", city: "世田谷区", address_line: "桜丘3丁目", price: 5980, layout: "３ldk", floor_area: "72.4" } }
 
       expect {
         post "/api/v1/properties", params:, as: :json
       }.to change(Property, :count).by(1)
 
       expect(response).to have_http_status(:created)
-      expect(response.parsed_body["data"]).to include("name" => "パークハウス世田谷", "layout" => "3LDK", "floor_area" => 72.4, "status" => "available")
+      expect(response.parsed_body["data"]).to include(
+        "name" => "パークハウス世田谷", "address" => "東京都世田谷区桜丘3丁目", "layout" => "3LDK", "floor_area" => 72.4, "status" => "available"
+      )
     end
 
     it "入力に誤りがある場合は422と項目ごとのエラーを返す" do
-      post "/api/v1/properties", params: { property: { name: "", address: "東京都", price: 0, status: "unknown" } }, as: :json
+      post "/api/v1/properties", params: { property: { name: "", prefecture: "東京", city: "港区", address_line: "港南1丁目", price: 0, status: "unknown" } }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
       details = response.parsed_body["error"]["details"]
-      expect(details.keys).to contain_exactly("name", "price", "status")
+      expect(details.keys).to contain_exactly("name", "prefecture", "price", "status")
     end
   end
 

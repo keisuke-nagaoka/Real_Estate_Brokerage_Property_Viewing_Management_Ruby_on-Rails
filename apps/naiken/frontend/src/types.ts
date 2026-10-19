@@ -46,9 +46,20 @@ export type Paginated<T> = { data: T[]; meta: PageMeta }
 
 export type PropertyStatus = 'available' | 'closed'
 
+// 物件があるエリア(絞り込みの選択肢)
+export type PropertyArea = {
+  prefecture: string
+  count: number
+  cities: { name: string; count: number }[]
+}
+
 export type Property = {
   id: number
   name: string
+  prefecture: string
+  city: string
+  address_line: string
+  // 都道府県・市区町村・町名番地をつなげた表示用の住所
   address: string
   price: number
   layout: string | null
@@ -64,7 +75,9 @@ export type Property = {
 
 export type PropertyInput = {
   name: string
-  address: string
+  prefecture: string
+  city: string
+  address_line: string
   price: number | ''
   layout: string
   floor_area: number | ''

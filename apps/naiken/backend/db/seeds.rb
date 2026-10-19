@@ -28,16 +28,19 @@ customers.each_with_index do |attrs, i|
 end
 
 properties = [
-  { name: "パークハウス世田谷桜丘", address: "東京都世田谷区桜丘3丁目", price: 5980, layout: "3LDK", floor_area: 72.4, built_year: 2015, nearest_station: "千歳船橋", walk_minutes: 8 },
-  { name: "ブリリア杉並高井戸", address: "東京都杉並区高井戸東2丁目", price: 4480, layout: "2LDK", floor_area: 58.1, built_year: 2009, nearest_station: "高井戸", walk_minutes: 6 },
-  { name: "プラウド目黒本町", address: "東京都目黒区目黒本町5丁目", price: 7280, layout: "3LDK", floor_area: 75.6, built_year: 2019, nearest_station: "武蔵小山", walk_minutes: 9 },
-  { name: "ザ・パークハウス港南", address: "東京都港区港南4丁目", price: 8900, layout: "2LDK", floor_area: 68.3, built_year: 2021, nearest_station: "品川", walk_minutes: 12, note: "高層階・眺望良好" },
-  { name: "ライオンズ練馬中村橋", address: "東京都練馬区中村北4丁目", price: 3680, layout: "3LDK", floor_area: 65.0, built_year: 2003, nearest_station: "中村橋", walk_minutes: 4, note: "ペット飼育可(規約あり)" },
-  { name: "シティテラス武蔵小杉", address: "神奈川県川崎市中原区小杉町1丁目", price: 5280, layout: "3LDK", floor_area: 70.2, built_year: 2012, nearest_station: "武蔵小杉", walk_minutes: 7 },
-  { name: "クレヴィア品川大井町", address: "東京都品川区大井1丁目", price: 5480, layout: "2LDK", floor_area: 55.8, built_year: 2017, nearest_station: "大井町", walk_minutes: 5 },
-  { name: "パークシティ日吉", address: "神奈川県横浜市港北区日吉本町1丁目", price: 4180, layout: "3LDK", floor_area: 71.0, built_year: 2006, nearest_station: "日吉", walk_minutes: 10 },
-  { name: "グランドメゾン中野", address: "東京都中野区中野2丁目", price: 6280, layout: "2LDK", floor_area: 60.5, built_year: 2018, nearest_station: "中野", walk_minutes: 6, status: "closed", note: "売主都合により掲載終了" },
-  { name: "コスモ三軒茶屋", address: "東京都世田谷区太子堂4丁目", price: 3980, layout: "1LDK", floor_area: 42.3, built_year: 1998, nearest_station: "三軒茶屋", walk_minutes: 3 }
+  { name: "パークハウス世田谷桜丘", prefecture: "東京都", city: "世田谷区", address_line: "桜丘3丁目", price: 5980, layout: "3LDK", floor_area: 72.4, built_year: 2015, nearest_station: "千歳船橋", walk_minutes: 8 },
+  { name: "ブリリア杉並高井戸", prefecture: "東京都", city: "杉並区", address_line: "高井戸東2丁目", price: 4480, layout: "2LDK", floor_area: 58.1, built_year: 2009, nearest_station: "高井戸", walk_minutes: 6 },
+  { name: "プラウド目黒本町", prefecture: "東京都", city: "目黒区", address_line: "目黒本町5丁目", price: 7280, layout: "3LDK", floor_area: 75.6, built_year: 2019, nearest_station: "武蔵小山", walk_minutes: 9 },
+  { name: "ザ・パークハウス港南", prefecture: "東京都", city: "港区", address_line: "港南4丁目", price: 8900, layout: "2LDK", floor_area: 68.3, built_year: 2021, nearest_station: "品川", walk_minutes: 12, note: "高層階・眺望良好" },
+  { name: "ライオンズ練馬中村橋", prefecture: "東京都", city: "練馬区", address_line: "中村北4丁目", price: 3680, layout: "3LDK", floor_area: 65.0, built_year: 2003, nearest_station: "中村橋", walk_minutes: 4, note: "ペット飼育可(規約あり)" },
+  { name: "シティテラス武蔵小杉", prefecture: "神奈川県", city: "川崎市中原区", address_line: "小杉町1丁目", price: 5280, layout: "3LDK", floor_area: 70.2, built_year: 2012, nearest_station: "武蔵小杉", walk_minutes: 7 },
+  { name: "クレヴィア品川大井町", prefecture: "東京都", city: "品川区", address_line: "大井1丁目", price: 5480, layout: "2LDK", floor_area: 55.8, built_year: 2017, nearest_station: "大井町", walk_minutes: 5 },
+  { name: "パークシティ日吉", prefecture: "神奈川県", city: "横浜市港北区", address_line: "日吉本町1丁目", price: 4180, layout: "3LDK", floor_area: 71.0, built_year: 2006, nearest_station: "日吉", walk_minutes: 10 },
+  { name: "グランドメゾン中野", prefecture: "東京都", city: "中野区", address_line: "中野2丁目", price: 6280, layout: "2LDK", floor_area: 60.5, built_year: 2018, nearest_station: "中野", walk_minutes: 6, status: "closed", note: "売主都合により掲載終了" },
+  { name: "コスモ三軒茶屋", prefecture: "東京都", city: "世田谷区", address_line: "太子堂4丁目", price: 3980, layout: "1LDK", floor_area: 42.3, built_year: 1998, nearest_station: "三軒茶屋", walk_minutes: 3 },
+  { name: "ルネ浦和パークサイド", prefecture: "埼玉県", city: "さいたま市浦和区", address_line: "高砂2丁目", price: 4680, layout: "3LDK", floor_area: 74.8, built_year: 2014, nearest_station: "浦和", walk_minutes: 6 },
+  { name: "ザ・レジデンス船橋", prefecture: "千葉県", city: "船橋市", address_line: "本町4丁目", price: 3880, layout: "3LDK", floor_area: 68.9, built_year: 2011, nearest_station: "船橋", walk_minutes: 5 },
+  { name: "ブランズ横浜青葉台", prefecture: "神奈川県", city: "横浜市青葉区", address_line: "青葉台1丁目", price: 5680, layout: "3LDK", floor_area: 80.2, built_year: 2017, nearest_station: "青葉台", walk_minutes: 8 }
 ]
 
 properties.each do |attrs|

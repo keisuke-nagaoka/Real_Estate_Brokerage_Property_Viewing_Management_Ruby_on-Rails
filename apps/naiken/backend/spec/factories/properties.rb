@@ -1,7 +1,9 @@
 FactoryBot.define do
   factory :property do
     sequence(:name) { "テストマンション#{it}" }
-    address { "東京都世田谷区桜丘3丁目" }
+    prefecture { "東京都" }
+    city { "世田谷区" }
+    address_line { "桜丘3丁目" }
     price { 5000 }
     layout { "3LDK" }
     floor_area { 70.5 }

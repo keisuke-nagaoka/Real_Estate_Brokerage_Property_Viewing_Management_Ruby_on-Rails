@@ -3,6 +3,9 @@ class PropertySerializer
     {
       id: property.id,
       name: property.name,
+      prefecture: property.prefecture,
+      city: property.city,
+      address_line: property.address_line,
       address: property.address,
       price: property.price,
       layout: property.layout,

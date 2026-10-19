@@ -29,7 +29,9 @@ ja:
         viewings: 内見予定
       property:
         name: 物件名
-        address: 住所
+        prefecture: 都道府県
+        city: 市区町村
+        address_line: 町名・番地
         price: 価格
         layout: 間取り
         floor_area: 専有面積

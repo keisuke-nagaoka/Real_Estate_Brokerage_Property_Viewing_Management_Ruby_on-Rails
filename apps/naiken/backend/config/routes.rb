@@ -10,7 +10,9 @@ Rails.application.routes.draw do
       resources :customers, only: %i[index show create update destroy] do
         patch :status, on: :member, action: :change_status
       end
-      resources :properties, only: %i[index show create update destroy]
+      resources :properties, only: %i[index show create update destroy] do
+        get :areas, on: :collection
+      end
       resources :viewings, only: %i[index show create update] do
         member do
           patch :complete

@@ -5,7 +5,7 @@ import { Pagination } from '../../components/Pagination'
 import { errorMessage } from '../../lib/api'
 import { formatAccess, formatBuildingAge, formatPrice } from '../../lib/format'
 import { propertyStatusLabels } from '../../lib/labels'
-import type { PageMeta, Property } from '../../types'
+import type { PageMeta, Property, PropertyArea } from '../../types'
 
 type ListResult = {
   key: string
@@ -18,11 +18,21 @@ export function PropertyListPage() {
   // 検索条件はURLのクエリに持たせ、リロードやブラウザバックでも条件を保持する
   const [searchParams, setSearchParams] = useSearchParams()
   const q = searchParams.get('q') ?? ''
+  const prefecture = searchParams.get('prefecture') ?? ''
+  const city = searchParams.get('city') ?? ''
   const status = searchParams.get('status') ?? ''
   const priceMin = searchParams.get('price_min') ?? ''
   const priceMax = searchParams.get('price_max') ?? ''
   const page = Number(searchParams.get('page') ?? 1)
-  const queryKey = `${q}|${status}|${priceMin}|${priceMax}|${page}`
+  const queryKey = `${q}|${prefecture}|${city}|${status}|${priceMin}|${priceMax}|${page}`
+
+  // 絞り込みの選択肢は、物件があるエリアだけをAPIから取得する
+  const [areas, setAreas] = useState<PropertyArea[]>([])
+  const cities = areas.find((area) => area.prefecture === prefecture)?.cities ?? []
+
+  useEffect(() => {
+    propertiesApi.areas().then((res) => setAreas(res.data))
+  }, [])
 
   // 取得結果は「どの検索条件の結果か(key)」と一緒に保持し、条件と一致しない間を読み込み中とみなす
   const [result, setResult] = useState<ListResult | null>(null)
@@ -32,13 +42,13 @@ export function PropertyListPage() {
   useEffect(() => {
     let ignore = false
     propertiesApi
-      .list({ q, status, price_min: priceMin, price_max: priceMax, page })
+      .list({ q, prefecture, city, status, price_min: priceMin, price_max: priceMax, page })
       .then((res) => !ignore && setResult({ key: queryKey, properties: res.data, meta: res.meta, error: null }))
       .catch((e: unknown) => !ignore && setResult({ key: queryKey, properties: [], meta: null, error: errorMessage(e) }))
     return () => {
       ignore = true
     }
-  }, [q, status, priceMin, priceMax, page, queryKey])
+  }, [q, prefecture, city, status, priceMin, priceMax, page, queryKey])
 
   const updateQuery = (next: Record<string, string>) => {
     const params = new URLSearchParams(searchParams)
@@ -80,6 +90,36 @@ export function PropertyListPage() {
         <button type="submit" className="btn">
           検索
         </button>
+      </form>
+
+      <div className="toolbar">
+        <select
+          className="input select-area"
+          value={prefecture}
+          onChange={(e) => updateQuery({ prefecture: e.target.value, city: '', page: '' })}
+          aria-label="都道府県"
+        >
+          <option value="">すべての都道府県</option>
+          {areas.map((area) => (
+            <option key={area.prefecture} value={area.prefecture}>
+              {area.prefecture}（{area.count}）
+            </option>
+          ))}
+        </select>
+        <select
+          className="input select-area"
+          value={city}
+          disabled={!prefecture}
+          onChange={(e) => updateQuery({ city: e.target.value, page: '' })}
+          aria-label="市区町村"
+        >
+          <option value="">{prefecture ? 'すべての市区町村' : '市区町村（都道府県を選択）'}</option>
+          {cities.map((c) => (
+            <option key={c.name} value={c.name}>
+              {c.name}（{c.count}）
+            </option>
+          ))}
+        </select>
         <div className="segmented">
           {[
             { value: '', label: 'すべて' },
@@ -96,7 +136,7 @@ export function PropertyListPage() {
             </button>
           ))}
         </div>
-      </form>
+      </div>
 
       {result?.error && <p className="alert alert-error">{result.error}</p>}
 

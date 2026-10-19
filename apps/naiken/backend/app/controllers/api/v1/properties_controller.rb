@@ -5,13 +5,20 @@ module Api
 
       before_action :set_property, only: %i[show update destroy]
 
-      # GET /api/v1/properties?q=世田谷&status=available&price_min=3000&price_max=6000&page=1
+      # GET /api/v1/properties?q=桜丘&prefecture=東京都&city=世田谷区&status=available&price_min=3000&price_max=6000&page=1
       def index
-        properties = Property.search(params[:q]).price_between(params[:price_min], params[:price_max])
+        properties = Property.search(params[:q])
+                             .in_area(params[:prefecture], params[:city])
+                             .price_between(params[:price_min], params[:price_max])
         properties = properties.where(status: params[:status]) if Property.statuses.key?(params[:status])
         properties, meta = paginate(properties.order(updated_at: :desc, id: :desc))
 
         render json: { data: properties.map { PropertySerializer.render(it) }, meta: }
+      end
+
+      # GET /api/v1/properties/areas  絞り込みの選択肢として、物件があるエリアと件数を返す
+      def areas
+        render json: { data: Property.areas }
       end
 
       def show
@@ -50,7 +57,7 @@ module Api
       end
 
       def property_params
-        params.expect(property: %i[name address price layout floor_area built_year nearest_station walk_minutes status note])
+        params.expect(property: %i[name prefecture city address_line price layout floor_area built_year nearest_station walk_minutes status note])
       end
     end
   end
