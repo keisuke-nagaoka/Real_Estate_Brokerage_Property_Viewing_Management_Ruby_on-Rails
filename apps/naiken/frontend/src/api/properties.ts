@@ -1,0 +1,18 @@
+import { api } from '../lib/api'
+import type { Paginated, Property, PropertyInput, Single } from '../types'
+
+export type PropertyQuery = {
+  q?: string
+  status?: string
+  price_min?: string
+  price_max?: string
+  page?: number
+}
+
+export const propertiesApi = {
+  list: (query: PropertyQuery) => api.get<Paginated<Property>>('/properties', query),
+  get: (id: number | string) => api.get<Single<Property>>(`/properties/${id}`),
+  create: (input: PropertyInput) => api.post<Single<Property>>('/properties', { property: input }),
+  update: (id: number | string, input: PropertyInput) => api.patch<Single<Property>>(`/properties/${id}`, { property: input }),
+  delete: (id: number | string) => api.delete(`/properties/${id}`),
+}

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000003) do
   create_table "agents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", null: false
@@ -32,6 +32,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000002) do
     t.datetime "updated_at", null: false
     t.index ["agent_id"], name: "index_customers_on_agent_id"
     t.index ["name_kana"], name: "index_customers_on_name_kana"
+  end
+
+  create_table "properties", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "address", null: false
+    t.integer "price", null: false, comment: "価格(万円)"
+    t.string "layout", comment: "間取り(例: 3LDK)"
+    t.decimal "floor_area", precision: 7, scale: 2, comment: "専有面積(㎡)"
+    t.integer "built_year", comment: "築年(西暦)"
+    t.string "nearest_station"
+    t.integer "walk_minutes", comment: "駅徒歩(分)"
+    t.string "status", default: "available", null: false, comment: "掲載状況(available: 掲載中 / closed: 掲載終了)"
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status", "price"], name: "index_properties_on_status_and_price"
   end
 
   add_foreign_key "customers", "agents"

@@ -1,6 +1,9 @@
 import { NavLink, Outlet } from 'react-router'
 
-const navItems = [{ to: '/customers', label: '顧客' }]
+const navItems = [
+  { to: '/customers', label: '顧客' },
+  { to: '/properties', label: '物件' },
+]
 
 export function Layout() {
   return (

@@ -3,6 +3,7 @@ ja:
     models:
       agent: 担当者
       customer: 顧客
+      property: 物件
     attributes:
       agent:
         name: 氏名
@@ -16,6 +17,17 @@ ja:
         budget_max: 予算上限
         desired_area: 希望エリア
         note: メモ
+      property:
+        name: 物件名
+        address: 住所
+        price: 価格
+        layout: 間取り
+        floor_area: 専有面積
+        built_year: 築年
+        nearest_station: 最寄り駅
+        walk_minutes: 駅徒歩
+        status: 掲載状況
+        note: メモ
     errors:
       models:
         customer:
@@ -24,3 +36,9 @@ ja:
               invalid: は全角カタカナで入力してください
             phone:
               invalid: は「090-1234-5678」の形式で入力してください
+        property:
+          attributes:
+            layout:
+              invalid: は「3LDK」「1K」「ワンルーム」などの形式で入力してください
+            built_year:
+              too_far_future: は3年後までの年を入力してください

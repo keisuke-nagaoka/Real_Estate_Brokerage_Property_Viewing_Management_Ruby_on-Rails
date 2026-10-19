@@ -39,3 +39,34 @@ export type PageMeta = {
 export type Single<T> = { data: T }
 export type List<T> = { data: T[] }
 export type Paginated<T> = { data: T[]; meta: PageMeta }
+
+export type PropertyStatus = 'available' | 'closed'
+
+export type Property = {
+  id: number
+  name: string
+  address: string
+  price: number
+  layout: string | null
+  floor_area: number | null
+  built_year: number | null
+  nearest_station: string | null
+  walk_minutes: number | null
+  status: PropertyStatus
+  note: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type PropertyInput = {
+  name: string
+  address: string
+  price: number | ''
+  layout: string
+  floor_area: number | ''
+  built_year: number | ''
+  nearest_station: string
+  walk_minutes: number | ''
+  status: PropertyStatus
+  note: string
+}

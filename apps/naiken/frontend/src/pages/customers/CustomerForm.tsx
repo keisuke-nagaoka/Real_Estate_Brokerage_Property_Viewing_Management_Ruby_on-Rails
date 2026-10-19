@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { agentsApi } from '../../api/agents'
+import { Field } from '../../components/Field'
 import { ApiError, errorMessage } from '../../lib/api'
 import type { Agent, Customer, CustomerInput } from '../../types'
 
@@ -120,22 +121,5 @@ export function CustomerForm({ initial, submitLabel, onSubmit, onCancel }: Props
         </button>
       </div>
     </form>
-  )
-}
-
-function Field({ label, required, errors, children }: { label: string; required?: boolean; errors: string[]; children: ReactNode }) {
-  return (
-    <label className={`field${errors.length ? ' has-error' : ''}`}>
-      <span className="field-label">
-        {label}
-        {required && <span className="required">必須</span>}
-      </span>
-      {children}
-      {errors.map((message) => (
-        <span key={message} className="field-error">
-          {message}
-        </span>
-      ))}
-    </label>
   )
 }

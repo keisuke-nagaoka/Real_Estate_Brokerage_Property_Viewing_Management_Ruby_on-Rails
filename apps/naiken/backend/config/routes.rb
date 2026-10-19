@@ -8,6 +8,7 @@ Rails.application.routes.draw do
       resource :health, only: :show, controller: :health
       resources :agents, only: :index
       resources :customers, only: %i[index show create update destroy]
+      resources :properties, only: %i[index show create update destroy]
     end
   end
 end

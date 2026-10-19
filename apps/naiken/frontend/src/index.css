@@ -215,12 +215,15 @@ h1 {
 
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   margin-bottom: 16px;
 }
 
 .toolbar .input[type='search'] {
-  max-width: 360px;
+  flex: 0 1 360px;
+  min-width: 220px;
 }
 
 .toolbar .select {
@@ -347,4 +350,120 @@ h1 {
 
 .loading {
   opacity: 0.5;
+}
+
+/* バッジ */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.badge-available {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-closed {
+  background: #f3f4f6;
+  color: var(--muted);
+}
+
+/* 絞り込み */
+.range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.range .input {
+  width: 100px;
+}
+
+.range span {
+  white-space: nowrap;
+}
+
+.segmented {
+  display: inline-flex;
+  margin-left: auto;
+  padding: 3px;
+  border-radius: 10px;
+  background: #ebebf0;
+}
+
+.segmented button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.segmented button.active {
+  background: #fff;
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* 物件カード */
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.property-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.property-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(109, 93, 252, 0.12);
+}
+
+.property-card.is-closed {
+  opacity: 0.6;
+}
+
+.property-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.property-price {
+  color: var(--accent);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.property-name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.property-specs {
+  display: flex;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.form-row.three {
+  grid-template-columns: 1fr 1fr 1fr;
 }
