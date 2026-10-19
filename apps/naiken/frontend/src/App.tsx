@@ -9,6 +9,9 @@ import { PropertyDetailPage } from './pages/properties/PropertyDetailPage'
 import { PropertyEditPage } from './pages/properties/PropertyEditPage'
 import { PropertyListPage } from './pages/properties/PropertyListPage'
 import { PropertyNewPage } from './pages/properties/PropertyNewPage'
+import { ViewingEditPage } from './pages/viewings/ViewingEditPage'
+import { ViewingListPage } from './pages/viewings/ViewingListPage'
+import { ViewingNewPage } from './pages/viewings/ViewingNewPage'
 
 function App() {
   return (
@@ -23,6 +26,9 @@ function App() {
         <Route path="properties/new" element={<PropertyNewPage />} />
         <Route path="properties/:id" element={<PropertyDetailPage />} />
         <Route path="properties/:id/edit" element={<PropertyEditPage />} />
+        <Route path="viewings" element={<ViewingListPage />} />
+        <Route path="viewings/new" element={<ViewingNewPage />} />
+        <Route path="viewings/:id/edit" element={<ViewingEditPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

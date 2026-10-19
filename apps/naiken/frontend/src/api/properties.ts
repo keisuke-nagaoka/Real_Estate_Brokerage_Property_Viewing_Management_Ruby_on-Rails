@@ -7,6 +7,7 @@ export type PropertyQuery = {
   price_min?: string
   price_max?: string
   page?: number
+  per_page?: number
 }
 
 export const propertiesApi = {

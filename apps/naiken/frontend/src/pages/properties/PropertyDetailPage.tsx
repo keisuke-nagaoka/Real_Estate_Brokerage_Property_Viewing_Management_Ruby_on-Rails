@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { propertiesApi } from '../../api/properties'
+import { ViewingSection } from '../../components/ViewingSection'
 import { errorMessage } from '../../lib/api'
 import { formatAccess, formatBuildingAge, formatDateTime, formatPrice } from '../../lib/format'
 import { propertyStatusLabels } from '../../lib/labels'
@@ -72,6 +73,13 @@ export function PropertyDetailPage() {
               <dd>{formatDateTime(property.updated_at)}</dd>
             </dl>
           </section>
+
+          {/* 掲載終了の物件には内見予定を追加できないため、追加ボタンを出さない */}
+          <ViewingSection
+            query={{ property_id: property.id }}
+            addLink={property.status === 'available' ? `/viewings/new?property_id=${property.id}` : undefined}
+            hideProperty
+          />
         </>
       )}
     </div>

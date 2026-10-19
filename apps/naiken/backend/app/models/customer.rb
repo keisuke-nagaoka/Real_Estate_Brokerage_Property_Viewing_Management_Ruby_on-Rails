@@ -4,6 +4,7 @@ class Customer < ApplicationRecord
   PHONE_FORMAT = /\A0\d{1,4}-?\d{1,4}-?\d{3,4}\z/
 
   belongs_to :agent
+  has_many :viewings, dependent: :restrict_with_error
 
   validates :name, presence: true, length: { maximum: 50 }
   validates :name_kana, presence: true, length: { maximum: 50 }, format: { with: KANA_FORMAT, allow_blank: true }

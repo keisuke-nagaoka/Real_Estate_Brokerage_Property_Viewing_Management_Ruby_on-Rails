@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000004) do
   create_table "agents", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", null: false
@@ -50,5 +50,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000003) do
     t.index ["status", "price"], name: "index_properties_on_status_and_price"
   end
 
+  create_table "viewings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "customer_id", null: false
+    t.bigint "property_id", null: false
+    t.bigint "agent_id", null: false
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.string "status", default: "scheduled", null: false, comment: "scheduled: 予定 / completed: 実施済み / canceled: キャンセル"
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_id", "status", "starts_at"], name: "index_viewings_on_agent_id_and_status_and_starts_at"
+    t.index ["agent_id"], name: "index_viewings_on_agent_id"
+    t.index ["customer_id"], name: "index_viewings_on_customer_id"
+    t.index ["property_id"], name: "index_viewings_on_property_id"
+    t.index ["starts_at"], name: "index_viewings_on_starts_at"
+  end
+
   add_foreign_key "customers", "agents"
+  add_foreign_key "viewings", "agents"
+  add_foreign_key "viewings", "customers"
+  add_foreign_key "viewings", "properties"
 end

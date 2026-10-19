@@ -41,4 +41,38 @@ properties.each do |attrs|
   Property.find_or_create_by!(name: attrs[:name]) { it.assign_attributes(attrs) }
 end
 
-puts "agents: #{Agent.count}, customers: #{Customer.count}, properties: #{Property.count}"
+# 内見予定は「今日」を基準に作るため、未登録のときだけ投入する
+if Viewing.none?
+  today = Time.zone.today
+  at = ->(days, hour, minute = 0) { (today + days).in_time_zone.change(hour:, min: minute) }
+  customer = ->(name) { Customer.find_by!(name:) }
+  property = ->(name) { Property.find_by!(name:) }
+
+  [
+    # 過去(実施済み・キャンセル)
+    { customer: "山田 太郎", property: "パークハウス世田谷桜丘", starts_at: at.(-7, 10), status: "completed", note: "日当たりを気に入っていた" },
+    { customer: "田中 花子", property: "ブリリア杉並高井戸", starts_at: at.(-5, 14), status: "completed" },
+    { customer: "伊藤 誠", property: "ザ・パークハウス港南", starts_at: at.(-3, 11), status: "canceled", note: "顧客都合でキャンセル" },
+    # 今後の予定
+    { customer: "山田 太郎", property: "コスモ三軒茶屋", starts_at: at.(1, 10) },
+    { customer: "中村 大輔", property: "プラウド目黒本町", starts_at: at.(1, 14) },
+    { customer: "伊藤 誠", property: "ザ・パークハウス港南", starts_at: at.(2, 11), note: "高層階の眺望を確認したい" },
+    { customer: "渡辺 由美", property: "シティテラス武蔵小杉", starts_at: at.(2, 15, 30) },
+    { customer: "加藤 拓也", property: "クレヴィア品川大井町", starts_at: at.(3, 13) },
+    { customer: "小林 さくら", property: "ライオンズ練馬中村橋", starts_at: at.(4, 10, 30), note: "ペット飼育規約を持参" },
+    { customer: "吉田 愛", property: "パークシティ日吉", starts_at: at.(5, 16) }
+  ].each do |attrs|
+    c = customer.(attrs[:customer])
+    Viewing.create!(
+      customer: c,
+      property: property.(attrs[:property]),
+      agent: c.agent,
+      starts_at: attrs[:starts_at],
+      ends_at: attrs[:starts_at] + 1.hour,
+      status: attrs.fetch(:status, "scheduled"),
+      note: attrs[:note]
+    )
+  end
+end
+
+puts "agents: #{Agent.count}, customers: #{Customer.count}, properties: #{Property.count}, viewings: #{Viewing.count}"

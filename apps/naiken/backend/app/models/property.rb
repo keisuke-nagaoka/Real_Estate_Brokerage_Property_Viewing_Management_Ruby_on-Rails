@@ -3,6 +3,8 @@ class Property < ApplicationRecord
   LAYOUT_FORMAT = /\A(\d{1,2}(R|K|DK|LDK|SK|SDK|SLDK)|ワンルーム)\z/
   MAX_PRICE = 1_000_000 # 100億円(万円単位)
 
+  has_many :viewings, dependent: :restrict_with_error
+
   enum :status, { available: "available", closed: "closed" }, validate: true
 
   validates :name, presence: true, length: { maximum: 100 }

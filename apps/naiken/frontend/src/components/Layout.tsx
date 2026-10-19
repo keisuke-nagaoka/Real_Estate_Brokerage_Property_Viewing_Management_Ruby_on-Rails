@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router'
 const navItems = [
   { to: '/customers', label: '顧客' },
   { to: '/properties', label: '物件' },
+  { to: '/viewings', label: '内見予定' },
 ]
 
 export function Layout() {

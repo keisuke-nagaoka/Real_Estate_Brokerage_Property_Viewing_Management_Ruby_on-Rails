@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { customersApi } from '../../api/customers'
+import { ViewingSection } from '../../components/ViewingSection'
 import { errorMessage } from '../../lib/api'
 import { formatBudget, formatDateTime } from '../../lib/format'
 import { NotFoundPage } from '../NotFoundPage'
@@ -69,6 +70,8 @@ export function CustomerDetailPage() {
               <dd>{formatDateTime(customer.updated_at)}</dd>
             </dl>
           </section>
+
+          <ViewingSection query={{ customer_id: customer.id }} addLink={`/viewings/new?customer_id=${customer.id}`} hideCustomer />
         </>
       )}
     </div>

@@ -70,3 +70,27 @@ export type PropertyInput = {
   status: PropertyStatus
   note: string
 }
+
+export type ViewingStatus = 'scheduled' | 'completed' | 'canceled'
+
+export type Viewing = {
+  id: number
+  starts_at: string
+  ends_at: string
+  status: ViewingStatus
+  note: string | null
+  customer: { id: number; name: string }
+  property: { id: number; name: string; address: string }
+  agent: { id: number; name: string }
+  created_at: string
+  updated_at: string
+}
+
+export type ViewingInput = {
+  customer_id: number | ''
+  property_id: number | ''
+  agent_id: number | ''
+  starts_at: string
+  ends_at: string
+  note: string
+}

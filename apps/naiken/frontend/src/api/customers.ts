@@ -5,6 +5,7 @@ export type CustomerQuery = {
   q?: string
   agent_id?: string
   page?: number
+  per_page?: number
 }
 
 export const customersApi = {

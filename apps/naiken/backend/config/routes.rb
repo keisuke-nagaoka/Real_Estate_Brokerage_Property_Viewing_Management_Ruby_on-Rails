@@ -9,6 +9,12 @@ Rails.application.routes.draw do
       resources :agents, only: :index
       resources :customers, only: %i[index show create update destroy]
       resources :properties, only: %i[index show create update destroy]
+      resources :viewings, only: %i[index show create update] do
+        member do
+          patch :complete
+          patch :cancel
+        end
+      end
     end
   end
 end

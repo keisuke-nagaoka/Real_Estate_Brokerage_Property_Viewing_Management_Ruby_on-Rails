@@ -26,13 +26,17 @@ Browser ──HTTPS──> nginx (EC2)
 
 - [x] 顧客情報の登録・編集・一覧・検索（氏名・フリガナ・メール・電話番号の部分一致、担当者での絞り込み、ページネーション）
 - [x] 物件情報の登録・管理（物件名・住所・最寄り駅での検索、掲載状況・価格帯での絞り込み）
-- [ ] 顧客と物件を紐づけた内見予定の管理
+- [x] 顧客と物件を紐づけた内見予定の管理（日付ごとの一覧、実施済み・キャンセルの操作、顧客・物件ごとの履歴表示）
 - [ ] 対応ステータスの更新 (問い合わせ → 内見予定 → 検討中 → 成約 など)
 - [ ] APIのテスト、入力値検証、エラーハンドリング
 
 ### 業務ルール (予定)
 
-- [ ] 同じ担当者に、時間帯が重複する内見予定は登録できない
+- [x] 同じ担当者に、時間帯が重複する内見予定は登録できない（同時リクエストでも二重登録されないよう担当者の行をロックする）
+- [x] 掲載終了の物件には内見予定を登録できない
+- [x] 実施済み・キャンセル済みの内見予定は変更できない
+- [x] 開始時刻前の内見予定は実施済みにできない
+- [x] 内見予定のある顧客・物件・担当者は削除できない（履歴の保護）
 - [ ] 成約済みの案件は、特定の操作 (内見予定の追加など) を制限する
 
 ## API
@@ -51,6 +55,12 @@ Browser ──HTTPS──> nginx (EC2)
 | POST | `/naiken/api/v1/properties` | 物件登録 |
 | PATCH | `/naiken/api/v1/properties/:id` | 物件更新（掲載状況の変更を含む） |
 | DELETE | `/naiken/api/v1/properties/:id` | 物件削除 |
+| GET | `/naiken/api/v1/viewings?from=&to=&agent_id=&customer_id=&property_id=&status=&order=&page=` | 内見予定一覧 |
+| GET | `/naiken/api/v1/viewings/:id` | 内見予定詳細 |
+| POST | `/naiken/api/v1/viewings` | 内見予定登録 |
+| PATCH | `/naiken/api/v1/viewings/:id` | 内見予定の変更（予定のもののみ） |
+| PATCH | `/naiken/api/v1/viewings/:id/complete` | 実施済みにする |
+| PATCH | `/naiken/api/v1/viewings/:id/cancel` | キャンセルする |
 
 エラーは常に次の形式で返す（バリデーションエラーは422、存在しない場合は404）。
 
@@ -69,6 +79,10 @@ Browser ──HTTPS──> nginx (EC2)
 - 入力値の表記ゆれ（全角の電話番号、前後の空白、空文字）は `normalizes` で保存前に正規化した
 - 一覧の検索条件はURLのクエリに持たせ、リロードやブラウザバックでも条件が保持されるようにした
 - 価格は「万円」単位の整数で保存し、小数の誤差が出ないようにした。専有面積は `decimal` で保存し、JSONでは文字列にならないよう数値に変換して返す
+- 内見予定のステータスは通常の更新APIでは変更できないようにし、`complete` / `cancel` という専用のエンドポイントでのみ遷移させた。どの状態からどの状態に変われるかをモデルのメソッドに閉じ込め、不正な遷移をAPIの入口で防いでいる
+- 担当者の予定の重複チェックは「チェックしてから保存する」までの間に別のリクエストが割り込むと二重登録になる。そこで保存前に担当者の行を `SELECT ... FOR UPDATE` でロックし、同じ担当者への登録を直列化した（別の担当者への登録は並行して処理できる）
+- 業務ルール違反（重複など）は特定の項目ではなく `base` のエラーとして返し、画面上部にメッセージを表示するようにした
+- 内見の日時は日本時間のオフセット付き（`+09:00`）で送信し、ブラウザのタイムゾーンに左右されないようにした
 - 掲載状況は文字列の `enum` で保存し、DBを直接見ても値の意味が分かるようにした。`validate: true` を指定し、未定義の値が送られても例外ではなくバリデーションエラー(422)になるようにした
 
 ## Laravel と Rails の違い
@@ -86,6 +100,9 @@ Browser ──HTTPS──> nginx (EC2)
 | APIリソース | API Resource (`JsonResource`) | 今回はシリアライザークラスを自作 |
 | ルーティング | `Route::apiResource` | `resources ... only:` |
 | 列挙型 | PHPの `enum` + `$casts` | `enum :status, { ... }`（`available?` などのメソッドも自動で生える） |
+| 悲観的ロック | `lockForUpdate()` | `lock`（`SELECT ... FOR UPDATE`） |
+| 関連先がある場合の削除禁止 | 外部キー制約の例外を捕まえる / 自前でチェック | `dependent: :restrict_with_error`（バリデーションエラーとして扱える） |
+| RESTに当てはまらない操作 | `Route::patch('viewings/{id}/complete')` | `member do patch :complete end` |
 | テスト | PHPUnit / Pest | RSpec + FactoryBot |
 
 ## 実装中に調べたこと・解決したこと
@@ -95,4 +112,6 @@ Browser ──HTTPS──> nginx (EC2)
 - **`customer` キーのないJSONも受け付けられた**：Rails の API モードでは ParamsWrapper が有効で、`{ "name": "..." }` のようなJSONを自動で `{ "customer": { "name": "..." } }` に包む。そのため「`customer` キーがなければ400」というテストが失敗した。Laravel にはない挙動なので、テストを「JSONは自動で包まれる」「JSON以外でキーがなければ400」の2つに分けた
 - **テストが development 環境で動いてしまった**：`.env` に `RAILS_ENV=development` を書いていたため、RSpec が test 環境ではなく development 環境で動き、Host 制限で403になった。Rails は未指定なら development になるので、`.env` から削除した
 - **未入力の価格に2つのエラーが出た**：`validates :price, presence: true, numericality: {...}` と書くと、未入力のときに「入力してください」と「数値で入力してください」の両方が出た。`numericality` に `allow_nil: true` を付けて別の行に分け、未入力のときは「入力してください」だけになるようにした
+- **enumの値の翻訳が効かなかった**：`human_attribute_name("status.completed")` では翻訳されず「Completed」になった。Railsでは `status/completed` のようにスラッシュでつなぐキーで探すため、`human_attribute_name("status/completed")` に直した
+- **削除できないときのメッセージが英語の関連名になった**：`restrict_with_error` のメッセージが「viewingsが存在しているので削除できません」になった。関連名(`viewings`)は「親モデルの属性名」として翻訳を探すため、顧客・物件・担当者それぞれの属性に `viewings: 内見予定` を追加した
 - **新しいディレクトリが読み込まれなかった**：`app/serializers` を追加した直後は `uninitialized constant` になった。Rails の自動読み込みの対象ディレクトリは起動時に決まるため、サーバーの再起動が必要だった

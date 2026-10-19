@@ -4,10 +4,13 @@ ja:
       agent: 担当者
       customer: 顧客
       property: 物件
+      viewing: 内見予定
     attributes:
       agent:
         name: 氏名
         email: メールアドレス
+        customers: 担当顧客
+        viewings: 内見予定
       customer:
         agent: 担当者
         name: 氏名
@@ -17,6 +20,7 @@ ja:
         budget_max: 予算上限
         desired_area: 希望エリア
         note: メモ
+        viewings: 内見予定
       property:
         name: 物件名
         address: 住所
@@ -27,6 +31,18 @@ ja:
         nearest_station: 最寄り駅
         walk_minutes: 駅徒歩
         status: 掲載状況
+        note: メモ
+        viewings: 内見予定
+      viewing:
+        customer: 顧客
+        property: 物件
+        agent: 担当者
+        starts_at: 開始日時
+        ends_at: 終了日時
+        status: ステータス
+        status/scheduled: 予定
+        status/completed: 実施済み
+        status/canceled: キャンセル
         note: メモ
     errors:
       models:
@@ -42,3 +58,12 @@ ja:
               invalid: は「3LDK」「1K」「ワンルーム」などの形式で入力してください
             built_year:
               too_far_future: は3年後までの年を入力してください
+        viewing:
+          attributes:
+            ends_at:
+              must_be_after_starts_at: は開始日時より後にしてください
+            property:
+              closed: は掲載終了のため、内見予定を登録できません
+          not_started_yet: 開始時刻前の内見予定は実施済みにできません
+          already_closed: "%{status}の内見予定は変更できません"
+          agent_schedule_overlap: "担当者の別の内見予定（%{starts_at}〜%{ends_at}）と時間が重複しています"
