@@ -5,7 +5,7 @@
 不動産仲介の営業担当者が、**顧客・物件・内見予定・対応状況**を一元管理する Web アプリケーションです。
 Ruby on Rails（API）と React（TypeScript）で構成し、Docker 上で開発、AWS（EC2 / RDS）で公開する前提で構築しています。
 
-- 公開URL: https://rails.keisuke-nagaoka.com/naiken/ （準備中）
+- 公開URL: https://rails.keisuke-nagaoka.com/naiken/ （デモデータ入り。登録・編集などの操作も試せます）
 
 ![ステータス別ボード](docs/images/customers-board.png)
 
@@ -224,7 +224,7 @@ http://localhost:9300/naiken/ を開くと、デモデータ入りの画面が�
 
 ## 今後の予定
 
-- AWS（EC2・RDS・Route 53）での公開
+- スマートフォンでの表示への対応（現在は PC の画面幅を想定したレイアウト）
 - ログインと権限管理（担当者ごとに操作できる顧客を制御する）
 - 物件写真の保存先を S3 に切り替え、CloudFront から配信する
 - 顧客への物件提案と、提案に対する顧客の反応（お気に入り・コメント）の記録
