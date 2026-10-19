@@ -11,6 +11,7 @@ Docker Compose で、nginx・Rails API・React(Vite)・MySQL を起動します�
 ├── compose.prod.yml        # EC2用 (MySQLコンテナなし・RDSへ接続・ソースをイメージに焼き込み)
 ├── .env.example            # 開発用イメージのビルド引数 (UID/GID)
 ├── .github/workflows/      # CI (GitHub Actions)
+├── deploy/front-nginx/     # EC2 の入口の nginx に置く設定 (rails.keisuke-nagaoka.com)
 ├── docs/                   # ドキュメント・スクリーンショット
 ├── scripts/
 │   └── generate_property_images.py  # デモ用の物件画像(外観・室内・間取り図)を生成
@@ -22,8 +23,8 @@ Docker Compose で、nginx・Rails API・React(Vite)・MySQL を起動します�
 │   │   └── Dockerfile          # 開発用 (React + Vite)
 │   ├── nginx/
 │   │   ├── default.conf        # ローカル用: /naiken/api/ → Rails, /naiken/ → Vite
-│   │   ├── default.prod.conf   # 本番用: /naiken/api/ → Rails, /naiken/ → Reactのビルド成果物
-│   │   ├── Dockerfile.prod     # Reactをビルドしてnginxイメージに焼き込む
+│   │   ├── default.prod.conf   # 本番用: /naiken/api/ → Rails, /naiken/ → Reactのビルド成果物 (HTTPSは入口のnginx)
+│   │   ├── Dockerfile.prod     # Reactのビルド成果物と設定をnginxイメージに焼き込む
 │   │   ├── server.crt          # 自己署名証明書 (gitignore)
 │   │   └── server.key
 │   └── mysql/
@@ -114,7 +115,7 @@ docker run --rm -v "$PWD":/work -w /work python:3.12-slim bash -c \
 | --- | --- |
 | Backend (Rails) | RuboCop / Brakeman / bundler-audit / RSpec（MySQL 8.0 をサービスコンテナで起動） |
 | Frontend (React) | oxlint / Vitest / 型チェック・ビルド |
-| Production images | 本番用の Rails API イメージ・nginx イメージがビルドできることを確認（プッシュはしない） |
+| Production images | テスト通過後に、本番用の Rails API イメージ・nginx イメージがビルドできることを確認する（プッシュはしない） |
 
 ## 新しいアプリを追加する手順
 

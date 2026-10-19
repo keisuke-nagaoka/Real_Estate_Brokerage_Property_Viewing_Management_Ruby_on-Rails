@@ -7,9 +7,11 @@ FROM ruby:${RUBY_VERSION}-slim AS base
 
 WORKDIR /rails
 
-# default-mysql-client: mysql2が実行時に使うlibmariadb3を含む / libjemalloc2: メモリ断片化対策 / libvips: 物件写真のサムネイル生成
+# libmariadb3: mysql2が実行時に使うMySQLのクライアントライブラリ(MySQL 8の認証方式のプラグインを含む)
+# libjemalloc2: メモリ断片化対策 / libvips: 物件写真のサムネイル生成
+# 本番サーバーのディスクが小さいため、mysqlコマンドなど実行時に不要なツールは入れない
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl ca-certificates default-mysql-client libjemalloc2 libvips42t64 tzdata && \
+    apt-get install --no-install-recommends -y curl ca-certificates libmariadb3 libjemalloc2 libvips42t64 tzdata && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 

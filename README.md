@@ -196,7 +196,7 @@ Browser ──HTTPS──> nginx
 | API（RSpec） | 各エンドポイントの正常系・異常系、絞り込み、エラーレスポンスの形式 |
 | フロントエンド（Vitest） | 価格・日時の表示変換（日本時間の扱い）、API クライアントのエラー処理、ステータス変更ボタン、入力欄のエラー表示 |
 
-GitHub Actions で、push ごとに RuboCop・Brakeman・bundler-audit・RSpec（バックエンド）、oxlint・Vitest・ビルド（フロントエンド）、本番用 Docker イメージのビルドを実行しています。
+GitHub Actions で、push ごとに RuboCop・Brakeman・bundler-audit・RSpec（バックエンド）、oxlint・Vitest・ビルド（フロントエンド）を実行し、テストがすべて通った後に本番用 Docker イメージがビルドできることを確認しています。
 
 ## ローカルで動かす
 
@@ -220,7 +220,7 @@ http://localhost:9300/naiken/ を開くと、デモデータ入りの画面が�
 | --- | --- |
 | [docs/development.md](docs/development.md) | ディレクトリ構成、よく使うコマンド、CI、アプリの追加手順 |
 | [docs/api.md](docs/api.md) | API のエンドポイント一覧、エラーレスポンスの形式 |
-| [docs/infrastructure.md](docs/infrastructure.md) | 本番環境（EC2・RDS）の構成、ローカルとの違い、デプロイ手順 |
+| [docs/infrastructure.md](docs/infrastructure.md) | 本番環境（EC2・RDS）の構成、既存サイトとの同居のしかた、デプロイ手順 |
 
 ## 今後の予定
 

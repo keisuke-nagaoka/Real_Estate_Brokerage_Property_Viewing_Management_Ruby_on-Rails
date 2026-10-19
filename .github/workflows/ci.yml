@@ -95,26 +95,25 @@ jobs:
   docker:
     name: Production images
     runs-on: ubuntu-latest
-    # EC2で使う本番用イメージ(compose.prod.yml)がビルドできることを確認する(プッシュはしない)
+    # テストがすべて通った場合に、EC2 で使う本番用イメージがビルドできることを確認する(プッシュはしない)
+    needs: [backend, frontend]
+    strategy:
+      matrix:
+        include:
+          - name: naiken-api
+            dockerfile: docker/ruby/Dockerfile.prod
+          - name: naiken-nginx
+            dockerfile: docker/nginx/Dockerfile.prod
     steps:
       - uses: actions/checkout@v7
 
       - uses: docker/setup-buildx-action@v4
 
-      - name: Build Rails API image
+      - name: Build ${{ matrix.name }}
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: docker/ruby/Dockerfile.prod
+          file: ${{ matrix.dockerfile }}
           push: false
-          cache-from: type=gha,scope=naiken-api
-          cache-to: type=gha,mode=max,scope=naiken-api
-
-      - name: Build nginx image (React build included)
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: docker/nginx/Dockerfile.prod
-          push: false
-          cache-from: type=gha,scope=rails-nginx
-          cache-to: type=gha,mode=max,scope=rails-nginx
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
